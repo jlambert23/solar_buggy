@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 import serial, json, rospy
-from solar_buggy.msg import Ultrasonic, RelationalWayPoint
-from geographic_msgs.msg import GeoPoint, KeyValue
+from solar_buggy.msg import Ultrasonic, RelationalWayPoint, Pose
+from geographic_msgs.msg import GeoPoint
 from std_msgs.msg import String
 
 serU = serial.Serial('/dev/ttyACM0', 9600)
 # serU = serial.Serial('/dev/ttyS3', 9600)
 
-gps_pub = rospy.Publisher('gps', GeoPoint, queue_size=10)
+gps_pub = rospy.Publisher('gps', Pose, queue_size=10)
 wp_pub = rospy.Publisher('waypoint', RelationalWayPoint, queue_size=10)
 ultra_pub = rospy.Publisher('ultrasonic', Ultrasonic, queue_size=10)
 
@@ -32,12 +32,16 @@ def read_serial():
 
         try:
             data = json.loads(serU.readline())
-            # data = get_sample_data()
+            #data = get_sample_data()
             
+            coordinates = GeoPoint()
+            coordinates.latitude = data['gps']['latitude']
+            coordinates.longitude = data['gps']['longitude']
+
             # Publishing gps data.
             gps_pub.publish(
-                latitude = data['gps']['latitude'],
-                longitude = data['gps']['longitude']
+                coordinates = coordinates,
+                bearing = data['gps']['IMU']
             )
 
             # Publishing waypoint data.
@@ -54,11 +58,13 @@ def read_serial():
                 left = data['ultrasonic']['3'],
             )
 
-        except ValueError or KeyError:
+        except ValueError:
+            continue
+        except KeyError:
             continue
 
-        # rate = rospy.Rate(1)
-        # rate.sleep()
+        #rate = rospy.Rate(1)
+        #rate.sleep()
 
 
 if __name__ == '__main__':

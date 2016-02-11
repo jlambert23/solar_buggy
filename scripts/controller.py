@@ -19,8 +19,6 @@ def controller_server():
     stop()
 
 def control_handler(req):
-    rospy.loginfo(req.command)
-
     if req.command == 'stop':
         stop()
     elif req.command == 'full_speed':
@@ -68,7 +66,7 @@ def half_speed():
 
 # Command vehicle to turn left
 def left():
-    serialMotors.write(chr(control['right']['full_speed']))
+    serialMotors.write(chr(control['right']['half_speed']))
     serialMotors.write(chr(control['left']['stop']))
     rospy.loginfo("LEFT!")
     return True
@@ -76,7 +74,7 @@ def left():
 # Command vehicle to turn right
 def right():
     serialMotors.write(chr(control['right']['stop']))
-    serialMotors.write(chr(control['left']['full_speed']))
+    serialMotors.write(chr(control['left']['half_speed']))
     rospy.loginfo("RIGHT!")
     return True
 
