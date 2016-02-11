@@ -26,6 +26,16 @@ def get_sample_data():
 
 
 def read_serial():
+    is_serial = False
+    while not is_serial:
+        try:
+            serU = serial.Serial('/dev/ttyACM0', 9600)
+            is_serial = True
+        except serial.serialutil.SerialException:
+            rospy.loginfo('Unable to read Serial...')
+            is_serial = False
+            pass
+
     while not rospy.is_shutdown():
         if serU.in_waiting == 0:
             continue
@@ -58,6 +68,8 @@ def read_serial():
                 left = data['ultrasonic']['3'],
             )
 
+        except KeyError:
+            continue
         except ValueError:
             continue
 
