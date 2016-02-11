@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Suggestions</title>
+</head>
+
+<body>
+
+Enter GPS Coords: 
+<br>
+<br>
+Longitude:<input type="text" id="longitude"></input>
+Latitude:<input type="text" id="latitude"></input>
+<br>
+<button type="button" id="submitcoords">Submit</button>
+<br>
+<br>
+
+<div id="telemetry"></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<script>
+
+setInterval(function(){ 
+  $.ajax({
+      url: "/update",
+      type: "get",
+      success: function(response) {
+        $("#telemetry").html(response);
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+}, 500);
+
+$("#submitcoords").click(function(){
+    var long = $("#longitude").val();
+    var lat = $("#latitude").val();
+
+    temp = {
+      data: {
+        longitude: long,
+        latitude: lat,
+      }
+    };
+
+    console.log("Long: " + temp.data.longitude);
+    console.log("Lat: " + temp.data.latitude);
+
+
+    $.ajax({
+      url: "/coords",
+      type: "post",
+      data: {longitude: long, latitude: lat},
+      success: function(response) {
+        console.log('response');
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+});
+
+</script>
+
+</body>
+
+</html>
