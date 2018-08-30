@@ -1,0 +1,30 @@
+{
+    "ports": {
+        "left":  "1010",
+        "front_left":  "1110",
+        "front_right": "0110",
+        "right":  "0010"
+    },
+    "motor_controls": {
+        "all_stop": 0,
+        "right": {
+            "full_speed": 127,
+            "half_speed": 96,
+            "rev_full_speed": 1,
+            "rev_half_speed": 32,
+            "stop": 64
+        },
+        "left": {
+            "full_speed": 255,
+            "half_speed": 224,
+            "rev_full_speed": 128,
+            "rev_half_speed": 160,
+            "stop": 192
+        }
+    },
+    "proximity": {
+        "low": 30.0,
+        "mid": 40.0,
+        "high": 70.0
+    }
+}
