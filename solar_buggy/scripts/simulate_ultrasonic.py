@@ -16,7 +16,7 @@ r_sensor_data  = config['ports']['right']       + '\n76.32'
 
 def publish_digit():
     pub = rospy.Publisher('ultrasonic', String, queue_size=10)
-    rospy.init_node('ultrasonic', anonymous=True)
+    rospy.init_node('ultrasonic_sim', anonymous=True)
 
     # Rate is 2 x second.
     rate = rospy.Rate(2)

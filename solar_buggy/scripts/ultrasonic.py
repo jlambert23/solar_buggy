@@ -97,7 +97,7 @@ def handle_right(data):
 if __name__ == '__main__':
 
     try:
-        rospy.init_node('infared', anonymous=True)
+        rospy.init_node('ultrasonic', anonymous=True)
         rospy.Subscriber('ultrasonic_' + config['ports']['left'], String, handle_left)
         rospy.Subscriber('ultrasonic_' + config['ports']['front_left'], String, handle_front_left)
         rospy.Subscriber('ultrasonic_' + config['ports']['front_right'], String, handle_front_right)
