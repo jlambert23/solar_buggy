@@ -1,8 +1,0 @@
-prefix=/home/jay/solar_buggy/install
-
-Name: solar_buggy
-Description: Description of solar_buggy
-Version: 0.0.0
-Cflags: -I/home/jay/solar_buggy/install/include
-Libs: -L/home/jay/solar_buggy/install/lib 
-Requires: 
