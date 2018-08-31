@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import Int8
+from solar_buggy.srv import Controller
 
 left_sensor        = False
 front_left_sensor  = False
@@ -16,7 +17,14 @@ looking_from_right = False
 
 def set_left_sensor(data):
     left_sensor = data.data
-    print('left: ' + str(left_sensor))
+    
+    if not left_sensor:
+        controller = rospy.ServiceProxy('control_full_speed', Controller)
+    else:
+        controller = rospy.ServiceProxy('control_stop', Controller)
+
+    controller()
+    #print('left: ' + str(left_sensor))
 
 def set_front_left_sensor(data):
     front_left_sensor = data.data

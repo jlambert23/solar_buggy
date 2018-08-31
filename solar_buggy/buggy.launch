@@ -1,7 +1,6 @@
 <launch>
-  <node name="ultrasonic_sim" pkg="solar_buggy" type="simulate_ultrasonic.py" output="screen"/>
   <node name="read_serial" pkg="solar_buggy" type="read_serial.py" output="screen"/>
   <node name="ultrasonic" pkg="solar_buggy" type="ultrasonic.py" output="screen"/>
-  <!-- <node name="move_vehicle" pkg="solar_buggy" type="move_vehicle.py" output="screen"/> -->
-  <!-- <node name="controller" pkg="solar_buggy" type="controller.py" output="screen"/> -->
+  <node name="move_vehicle" pkg="solar_buggy" type="move_vehicle.py" output="screen"/>
+  <node name="controller" pkg="solar_buggy" type="controller.py" output="screen"/>
 </launch>
