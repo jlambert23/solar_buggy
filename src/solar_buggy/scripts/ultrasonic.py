@@ -5,10 +5,10 @@ from std_msgs.msg import String, Int8
 from get_config import config
 
 sensors = {
-    'left': False,
-    'front_left': False,
-    'front_right': False,
-    'right': False
+    'left': True,
+    'front_left': True,
+    'front_right': True,
+    'right': True
 }
 
 def handle_left(data):
@@ -80,7 +80,7 @@ def handle_front_right(data):
 
 def handle_right(data):
     distance = float(data.data)
-    rospy.loginfo('right: ' + data.data)
+    rospy.loginfo('right: ' + data.data )
     pub = rospy.Publisher('right_sensor', Int8, queue_size=10)
 
     if distance >= config['proximity']['mid'] and sensors['right']:
@@ -98,10 +98,10 @@ if __name__ == '__main__':
 
     try:
         rospy.init_node('infared', anonymous=True)
-        rospy.Subscriber('ir_' + config['ports']['left'], String, handle_left)
-        rospy.Subscriber('ir_' + config['ports']['front_left'], String, handle_front_left)
-        rospy.Subscriber('ir_' + config['ports']['front_right'], String, handle_front_right)
-        rospy.Subscriber('ir_' + config['ports']['right'], String, handle_right)
+        rospy.Subscriber('ultrasonic_' + config['ports']['left'], String, handle_left)
+        rospy.Subscriber('ultrasonic_' + config['ports']['front_left'], String, handle_front_left)
+        rospy.Subscriber('ultrasonic_' + config['ports']['front_right'], String, handle_front_right)
+        rospy.Subscriber('ultrasonic_' + config['ports']['right'], String, handle_right)
 
         rospy.spin()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Actual IR data will be coming through a serial port, 
+# Actual ultrasonic data will be coming through a serial port, 
 # so this is a poor representation of how the data will be sent.
 # However, for the sake of brevity and testing this script will 
 # use a pub/sub representation that will simply send a digit until terminated.
@@ -15,8 +15,8 @@ fr_sensor_data = config['ports']['front_right'] + '\n3.7'
 r_sensor_data  = config['ports']['right']       + '\n76.32'
 
 def publish_digit():
-    pub = rospy.Publisher('ir', String, queue_size=10)
-    rospy.init_node('ir', anonymous=True)
+    pub = rospy.Publisher('ultrasonic', String, queue_size=10)
+    rospy.init_node('ultrasonic', anonymous=True)
 
     # Rate is 2 x second.
     rate = rospy.Rate(2)
