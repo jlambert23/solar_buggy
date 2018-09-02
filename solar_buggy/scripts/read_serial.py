@@ -2,15 +2,23 @@
 
 import serial
 import rospy
+from get_config import config
 from std_msgs.msg import String
 
 serU = serial.Serial('/dev/ttyACM0', 9600)
+ports = config['ports']
+
 
 def ultra():
-
-
     rate = rospy.Rate(10) # 10hz
 
+    pub = {
+        ports['left']: rospy.Publisher('ultrasonic_' + ports['left'], String, queue_size=10),
+        ports['front_left']: rospy.Publisher('ultrasonic_' + ports['front_left'], String, queue_size=10),
+        ports['front_right']: rospy.Publisher('ultrasonic_' + ports['front_right'], String, queue_size=10),
+        ports['right']: rospy.Publisher('ultrasonic_' + ports['right'], String, queue_size=10)
+    }
+    
     while not rospy.is_shutdown():
         if serU.in_waiting > 0:
             data = serU.readline()
@@ -18,8 +26,7 @@ def ultra():
             port = data[0:4].strip('\r\n')
             distance = data[5:].strip('\r\n')
 
-            pub = rospy.Publisher('ultrasonic_' + port, String, queue_size=10)
-            pub.publish(distance)
+            pub[port].publish(distance)
 
             #rospy.loginfo(data)
             rate.sleep()
