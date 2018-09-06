@@ -1,105 +1,84 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import String, Int8
+from std_msgs.msg import String
+from solar_buggy.msg import Ultrasonic
 from get_config import config
 
-sensors = {
+sensors_clear = {
     'left': True,
     'front_left': True,
     'front_right': True,
     'right': True
 }
 
+# TODO: Test how this will change with the different threaded calls in the handle_* functions.
+def publish_to_controller():
+    pub = rospy.Publisher('sensors', Ultrasonic, queue_size=20)
+    pub.publish(*sensors_clear.values())
+    # rospy.loginfo(sensors_clear.values())
+
+
 def handle_left(data):
     distance = int(data.data) * 10
-    #rospy.loginfo('left: ' + data.data)
-    pub = rospy.Publisher('left_sensor', Int8, queue_size=10)
     print(distance)
-    
-    if distance >= 30 and not sensors['left']:
-        sensors['left'] = True
-        pub.publish(True)
 
-    elif distance < 30 and sensors['left']:
-        sensors['left'] = False
-        pub.publish(False)
+    if distance >= 30 and not sensors_clear['left']:
+        sensors_clear['left'] = True
+        publish_to_controller()
+
+    elif distance < 30 and sensors_clear['left']:
+        sensors_clear['left'] = False
+        publish_to_controller()
+
 
 def handle_front_left(data):
     distance = int(data.data) * 10
-    #rospy.loginfo('front left: ' + data.data)
-    pub = rospy.Publisher('front_left_sensor', Int8, queue_size=10)
+    print(distance)
 
-    if distance > config['proximity']['high']:
-        signalgo = True
-    #     if corner.isSet():
-    #       corner.clear()
+    if distance >= 30 and not sensors_clear['front_left']:
+        sensors_clear['front_left'] = True
+        publish_to_controller()
 
-    elif distance >= config['proximity']['mid'] and sensors['front_left']:
-        sensors['front_left'] = False
-        pub.publish(False)
-    #     signalGo = True
-    #     leftFrontSensor = False
-    #     if corner.isSet():
-    #         corner.clear()
+    elif distance < 30 and sensors_clear['front_left']:
+        sensors_clear['front_left'] = False
+        publish_to_controller()
 
-    elif distance <= config['proximity']['low'] and not sensors['front_left']:
-        sensors['front_left'] = True
-        pub.publish(True)
-    #     signalGo = False
-    #     leftFrontSensor = True
 
 def handle_front_right(data):
     distance = int(data.data) * 10
-    #rospy.loginfo('front right: ' + data.data)
-    pub = rospy.Publisher('front_right_sensor', Int8, queue_size=10)
+    print(distance)
 
-    if distance > config['proximity']['high'] and not sensors['front_right']:
-        sensors['front_right'] = True
-        pub.publish(True)
-    #     signalGo = True
-    #     rightFrontSensor = False
-    #     if corner.isSet():
-    #         corner.clear()
+    if distance >= 30 and not sensors_clear['front_right']:
+        sensors_clear['front_right'] = True
+        publish_to_controller()
 
-    elif distance >= config['proximity']['mid'] and sensors['front_right']:
-        sensors['front_right'] = False
-        pub.publish(False)
-    #     signalGo = True
-    #     rightFrontSensor = False
-    #     if corner.isSet():
-    #         corner.clear()
+    elif distance < 30 and sensors_clear['front_right']:
+        sensors_clear['front_right'] = False
+        publish_to_controller()
 
-    elif distance <= config['proximity']['low'] and sensors['front_right']:
-        sensors['front_right'] = False
-        pub.publish(False)
-    #     signalGo = False
-    #     rightFrontSensor = True
 
 def handle_right(data):
     distance = int(data.data) * 10
-    #rospy.loginfo('right: ' + data.data )
-    pub = rospy.Publisher('right_sensor', Int8, queue_size=10)
+    print(distance)
 
-    if distance >= config['proximity']['mid'] and sensors['right']:
-        sensors['right'] = False
-        pub.publish(False)
-    #     rightSensor = False
+    if distance >= 30 and not sensors_clear['front_right']:
+        sensors_clear['front_right'] = True
+        publish_to_controller()
 
-    elif distance <= config['proximity']['low'] and not sensors['right']:
-        sensors['right'] = True
-        pub.publish(True)
-    #     rightSensor = True
-    #     lookingFromRight = True
+    elif distance < 30 and sensors_clear['front_right']:
+        sensors_clear['front_right'] = False
+        publish_to_controller()
+
 
 if __name__ == '__main__':
 
     try:
         rospy.init_node('ultrasonic', anonymous=True)
         rospy.Subscriber('ultrasonic_' + config['ports']['left'], String, handle_left)
-        #rospy.Subscriber('ultrasonic_' + config['ports']['front_left'], String, handle_front_left)
-        #rospy.Subscriber('ultrasonic_' + config['ports']['front_right'], String, handle_front_right)
-        #rospy.Subscriber('ultrasonic_' + config['ports']['right'], String, handle_right)
+        rospy.Subscriber('ultrasonic_' + config['ports']['front_left'], String, handle_front_left)
+        rospy.Subscriber('ultrasonic_' + config['ports']['front_right'], String, handle_front_right)
+        rospy.Subscriber('ultrasonic_' + config['ports']['right'], String, handle_right)
 
         rospy.spin()
 

@@ -1,47 +1,25 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Int8
+from solar_buggy.msg import Ultrasonic
 from solar_buggy.srv import Controller
 
-left_sensor        = False
-front_left_sensor  = False
-front_right_sensor = False
-right_sensor       = False
+def all_clear(sensors_clear):
+    return sensors_clear.left and sensors_clear.right and sensors_clear.frontleft and sensors_clear.frontright
 
-signal_go          = True
-start_up           = True
-side_check         = False
-looking_from_left  = False
-looking_from_right = False
+def move_vehicle(sensors_clear):
+    controller = rospy.ServiceProxy('controller', Controller)
 
-def set_left_sensor(data):
-    left_sensor = data.data
-    
-    if not left_sensor:
-        controller = rospy.ServiceProxy('control_full_speed', Controller)
-    else:
-        controller = rospy.ServiceProxy('control_stop', Controller)
+    if all_clear(sensors_clear):
+        controller('half_speed')
 
-    controller()
-    #print('left: ' + str(left_sensor))
+    elif not sensors_clear.left:
+        controller('veer_right')
 
-def set_front_left_sensor(data):
-    front_left_sensor = data.data
-    print('front_left: ' + str(front_left_sensor))
-
-def set_front_right_sensor(data):
-    front_right_sensor = data.data
-    print('front_right: ' + str(front_right_sensor))
-
-def set_right_sensor(data):
-    right_sensor = data.data
-    print('right: ' + str(right_sensor))
+    elif not sensors_clear.right:
+        controller('veer_left')
 
 if __name__ == '__main__':
     rospy.init_node('move_vehicle', anonymous=True)
-    rospy.Subscriber('left_sensor', Int8, set_left_sensor)
-    rospy.Subscriber('front_left_sensor', Int8, set_front_left_sensor)
-    rospy.Subscriber('front_right_sensor', Int8, set_front_right_sensor)
-    rospy.Subscriber('right_sensor', Int8, set_right_sensor)
+    rospy.Subscriber('sensors', Ultrasonic, move_vehicle)
     rospy.spin()
