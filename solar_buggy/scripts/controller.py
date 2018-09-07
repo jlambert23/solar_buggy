@@ -5,7 +5,7 @@ from get_config import config
 from solar_buggy.srv import Controller
 
 # Serial port for sensors and motors
-# serialMotors  = serial.Serial('/dev/ttySAC0', 9600, timeout = 10)
+serialMotors  = serial.Serial('/dev/ttySAC0', 9600, timeout = 10)
 
 control = config['motor_controls']
 

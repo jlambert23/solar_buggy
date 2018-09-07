@@ -13,11 +13,14 @@ def move_vehicle(sensors_clear):
     if all_clear(sensors_clear):
         controller('half_speed')
 
-    elif not sensors_clear.left:
+    elif sensors_clear.right and not sensors_clear.left:
         controller('veer_right')
 
-    elif not sensors_clear.right:
+    elif sensors_clear.left and not sensors_clear.right:
         controller('veer_left')
+
+    else:
+        controller('stop')
 
 if __name__ == '__main__':
     rospy.init_node('move_vehicle', anonymous=True)

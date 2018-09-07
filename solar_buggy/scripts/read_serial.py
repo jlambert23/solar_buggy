@@ -7,8 +7,6 @@ from std_msgs.msg import String
 serU = serial.Serial('/dev/ttyACM0', 9600)
 
 def ultra():
-
-
     rate = rospy.Rate(10) # 10hz
 
     while not rospy.is_shutdown():
