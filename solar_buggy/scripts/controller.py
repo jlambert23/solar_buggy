@@ -17,27 +17,27 @@ def controller_server():
 def control_handler(req):
     rospy.loginfo(req.command)
 
-    if req.command is 'stop':
+    if req.command == 'stop':
         stop()
-    elif req.command is 'full_speed':
+    elif req.command == 'full_speed':
         full_speed()
-    elif req.command is 'half_speed':
+    elif req.command == 'half_speed':
         half_speed()
-    elif req.command is 'left':
+    elif req.command == 'left':
         left()
-    elif req.command is 'right':
+    elif req.command == 'right':
         right()
-    elif req.command is 'veer_left':
+    elif req.command == 'veer_left':
         veer_left()
-    elif req.command is 'veer_right':
+    elif req.command == 'veer_right':
         veer_right()
-    elif req.command is 'reverse_full_speed':
+    elif req.command == 'reverse_full_speed':
         reverse_full_speed()
-    elif req.command is 'reverse_half_speed':
+    elif req.command == 'reverse_half_speed':
         reverse_half_speed()
-    elif req.command is 'rotate_left_half_speed':
+    elif req.command == 'rotate_left_half_speed':
         rotate_left_half_speed()
-    elif req.command is 'rotate_right_half_speed':
+    elif req.command == 'rotate_right_half_speed':
         rotate_right_half_speed()
     
     return True

@@ -20,8 +20,8 @@ def publish_to_controller():
 
 
 def handle_left(data):
-    distance = int(data.data) * 10
-    print(distance)
+    distance = int(data.data)
+    rospy.loginfo("left: " + str(distance))
 
     if distance >= 30 and not sensors_clear['left']:
         sensors_clear['left'] = True
@@ -33,8 +33,8 @@ def handle_left(data):
 
 
 def handle_front_left(data):
-    distance = int(data.data) * 10
-    print(distance)
+    distance = int(data.data)
+    rospy.loginfo("front left: " + str(distance))
 
     if distance >= 30 and not sensors_clear['front_left']:
         sensors_clear['front_left'] = True
@@ -46,8 +46,8 @@ def handle_front_left(data):
 
 
 def handle_front_right(data):
-    distance = int(data.data) * 10
-    print(distance)
+    distance = int(data.data)
+    rospy.loginfo("front right: " + str(distance))
 
     if distance >= 30 and not sensors_clear['front_right']:
         sensors_clear['front_right'] = True
@@ -59,8 +59,8 @@ def handle_front_right(data):
 
 
 def handle_right(data):
-    distance = int(data.data) * 10
-    print(distance)
+    distance = int(data.data)
+    rospy.loginfo("right: " + str(distance))
 
     if distance >= 30 and not sensors_clear['front_right']:
         sensors_clear['front_right'] = True

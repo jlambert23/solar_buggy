@@ -1,22 +1,22 @@
 {
     "ports": {
-        "left":  "1010",
-        "front_left":  "1110",
-        "front_right": "0110",
-        "right":  "0010"
+        "left":  "0000",
+        "front_left":  "0001",
+        "front_right": "0010",
+        "right":  "0011"
     },
     "motor_controls": {
         "all_stop": 0,
         "right": {
             "full_speed": 127,
-            "half_speed": 96,
+            "half_speed": 65,
             "rev_full_speed": 1,
             "rev_half_speed": 32,
             "stop": 64
         },
         "left": {
             "full_speed": 255,
-            "half_speed": 224,
+            "half_speed": 193,
             "rev_full_speed": 128,
             "rev_half_speed": 160,
             "stop": 192
