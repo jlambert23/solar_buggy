@@ -14,7 +14,7 @@ gps_pub = rospy.Publisher('gps', GeoPoint, queue_size=10)
 ultra_pub = rospy.Publisher('ultrasonic', Ultrasonic, queue_size=10)
 
 def read_serial():
-    rate = rospy.Rate(1)
+    # rate = rospy.Rate(1)
     while not rospy.is_shutdown():
         if serU.in_waiting == 0:
             continue
@@ -47,7 +47,7 @@ def read_serial():
         except ValueError:
             continue
 
-        rate.sleep()
+        # rate.sleep()
 
 
 if __name__ == '__main__':
