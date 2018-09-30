@@ -12,7 +12,11 @@ control = config['motor_controls']
 def controller_server():
     rospy.init_node('controller')
     rospy.Service('controller', Controller, control_handler)
-    rospy.spin()
+
+    while not rospy.is_shutdown():
+        rospy.sleep(1.0)
+
+    stop()
 
 def control_handler(req):
     rospy.loginfo(req.command)
