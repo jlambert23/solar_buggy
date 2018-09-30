@@ -10,6 +10,8 @@ project(solar_buggy)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  uuid_msgs
+  geographic_msgs
   message_generation
 )
 
