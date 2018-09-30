@@ -3,30 +3,52 @@
 import rospy
 import math
 
-from solar_buggy.msg import GPS
 from std_msgs.msg import String
+from geographic_msgs.msg import GeoPoint
+from solar_buggy.msg import RelationalWayPoint
 
-pub = rospy.Publisher('gps_cmd', String, queue_size=10)
+# Tolerance for vehicle to satisfy waypoint in feet.
+DISTANCE_TOLERANCE = 20.0
 
-def handler(data):
-    if data.dest_distance > 0:
-        if data.dest_bearing == math.pi / 2:
-            pub.publish('east')
-        elif data.dest_bearing == 3 * math.pi / 2:
-            pub.publish('west')
-        else:
-            buggy_bearing = 1 / math.tan(data.velocity_east / data.velocity_north)
+class GpsNode:
 
-            if buggy_bearing > data.dest_bearing:
-                pub.publish('left')
-            elif buggy_bearing < data.dest_bearing:
-                pub.publish('right')
+    def __init__(self):
+        rospy.init_node('gps', anonymous=True)
+
+        # Convert tolerance to miles and store in object.
+        self.distance_tolerance = round(DISTANCE_TOLERANCE / 5280.0, 8)    
+        
+        self.waypoint = RelationalWayPoint()
+
+        self.cmd_pub = rospy.Publisher('gps_cmd', String, queue_size=10)
+        self.geopoint_sub = rospy.Subscriber('gps', GeoPoint, self.update_location)
+        self.waypoint_sub = rospy.Subscriber('waypoint', RelationalWayPoint, self.update_waypoint)
+
+    def update_location(self, data):
+        self.location = data
+
+    def update_waypoint(self, data):
+        if self.waypoint is not None:
+            self.waypoint_old = self.waypoint
+
+        self.waypoint = data
+        self.waypoint.distance = round(data.distance, 8)
+
+        self.move2goal()
+
+    def move2goal(self):
+        if self.waypoint.distance >= self.distance_tolerance:
+            if self.waypoint.bearing < self.waypoint_old.bearing:
+                self.cmd_pub.publish('left')
+            elif self.waypoint.bearing > self.waypoint_old.bearing:
+                self.cmd_pub.publish('right')
             else:
-                pub.publish('straight')
-    else:
-        pub.publish('destination_reached')
+                if self.waypoint.distance > self.waypoint_old.distance:
+                    self.cmd_pub.publish('turn_around')
+                else:
+                    self.cmd_pub.publish('full_speed')
+        
 
 if __name__ == '__main__':
-    rospy.init_node('gps', anonymous=True)
-    rospy.Subscriber('gps_serial', GPS, handler)
+    gps = GpsNode()
     rospy.spin()

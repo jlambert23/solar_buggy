@@ -1,0 +1,16 @@
+{
+    "ultrasonic": {
+        "0":48,
+        "1":69,
+        "2":255,
+        "3":250
+    },
+    "gps": {
+        "waypoint": {
+            "distance": 253,
+            "bearing": 143.28
+        }, 
+        "latitude": 20.17383, 
+        "longitude": -8.21838
+    }
+}
