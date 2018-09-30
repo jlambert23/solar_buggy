@@ -22,7 +22,6 @@ def read_serial():
         try:
             data = json.loads(serU.readline())
             # data = json.loads(input_sample)
-            
 
             distance = data['gps']['destination']['distance']
             bearing = data['gps'] ['destination']['bearing']
@@ -32,16 +31,11 @@ def read_serial():
                 longitude = data['gps']['longitude']
             )
 
-            left_sensor = data['ultrasonic']['0']
-            right_sensor = data['ultrasonic']['1']
-            front_sensor = data['ultrasonic']['2']
-            back_sensor = data['ultrasonic']['3']
-
             ultra_pub.publish(
-                left = data['ultrasonic']['0'],
+                back = data['ultrasonic']['0'],
                 right = data['ultrasonic']['1'],
                 front = data['ultrasonic']['2'],
-                back = data['ultrasonic']['3']
+                left = data['ultrasonic']['3'],
             )
 
         except ValueError:

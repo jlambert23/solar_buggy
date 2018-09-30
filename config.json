@@ -7,14 +7,14 @@
     },
     "motor_controls": {
         "all_stop": 0,
-        "right": {
+        "left": {
             "full_speed": 127,
             "half_speed": 65,
             "rev_full_speed": 1,
             "rev_half_speed": 32,
             "stop": 64
         },
-        "left": {
+        "right": {
             "full_speed": 255,
             "half_speed": 193,
             "rev_full_speed": 128,

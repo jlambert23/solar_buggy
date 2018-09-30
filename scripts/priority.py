@@ -8,6 +8,7 @@ controller = rospy.ServiceProxy('controller', Controller)
 
 def ultra_handler(command):
     print(command.data)
+    controller(command.data)
 
 def gps_handler(command):
     if (command.data == 'destination_reached'):
@@ -20,4 +21,6 @@ if __name__ == '__main__':
     rospy.init_node('priority', anonymous=True)
     rospy.Subscriber('ultra_cmd', String, ultra_handler)
     rospy.Subscriber('gps_cmd', String, gps_handler)
+
     rospy.spin()
+

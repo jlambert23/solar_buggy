@@ -54,9 +54,9 @@ void ultrasonic()
   // Read and print all ultrasonic sensors.
   for (int i = 0; i < ultrasonics; i++) {
     digitalWrite(trigPins[i], LOW);
-    delay(10);
+    delay(1);
     digitalWrite(trigPins[i], HIGH);
-    delay(10);
+    delay(1);
     digitalWrite(trigPins[i], LOW);
     
     duration = pulseIn(echoPins[i], HIGH);
