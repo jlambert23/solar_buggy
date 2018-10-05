@@ -53,6 +53,7 @@ add_message_files(
   FILES
   Ultrasonic.msg
   RelationalWayPoint.msg
+  Pose.msg
 )
 
 # Generate services in the 'srv' folder
