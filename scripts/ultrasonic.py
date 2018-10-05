@@ -28,9 +28,11 @@ def handler(ultra):
         sensor_info |= 0b0010
     if ultra.right < 30.0:
         sensor_info |= 0b0100
-    if ultra.back < 30.0:
-        sensor_info |= 0b1000
-    print sensor_info
+    #if ultra.back < 30.0:
+    #    sensor_info |= 0b1000
+    #print sensor_info
+    #print ultra
+
     if (sensor_info == 7):
         command = 'reverse_full_speed'
     elif (sensor_info == 5): 

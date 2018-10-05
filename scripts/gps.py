@@ -8,7 +8,7 @@ from geographic_msgs.msg import GeoPoint
 from solar_buggy.msg import RelationalWayPoint
 
 # Tolerance for vehicle to satisfy waypoint in feet.
-DISTANCE_TOLERANCE = 20.0
+DISTANCE_TOLERANCE = 5.0
 
 class GpsNode:
 
@@ -19,6 +19,7 @@ class GpsNode:
         self.distance_tolerance = round(DISTANCE_TOLERANCE / 5280.0, 8)    
         
         self.waypoint = RelationalWayPoint()
+        self.location = GeoPoint()
 
         self.cmd_pub = rospy.Publisher('gps_cmd', String, queue_size=10)
         self.geopoint_sub = rospy.Subscriber('gps', GeoPoint, self.update_location)
@@ -37,6 +38,10 @@ class GpsNode:
         self.move2goal()
 
     def move2goal(self):
+        if self.location is None or (self.location.latitude == 0 and self.location.longitude == 0):
+            rospy.loginfo('Waiting for fix...')
+            return
+
         if self.waypoint.distance >= self.distance_tolerance:
             if self.waypoint.bearing < self.waypoint_old.bearing:
                 self.cmd_pub.publish('left')
@@ -47,6 +52,8 @@ class GpsNode:
                     self.cmd_pub.publish('turn_around')
                 else:
                     self.cmd_pub.publish('full_speed')
+        else:
+            self.cmd_pub.publish('destination_reached')
         
 
 if __name__ == '__main__':

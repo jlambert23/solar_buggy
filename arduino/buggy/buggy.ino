@@ -1,7 +1,7 @@
 #include <ArduinoJson.h>
 #include <NMEAGPS.h>
 
-NeoGPS::Location_t destination( 28.58502, -81.19885 );
+NeoGPS::Location_t destination( 28.5853905, -81.2001379 );
 
 // GPS prep variables.
 static NMEAGPS  gps;

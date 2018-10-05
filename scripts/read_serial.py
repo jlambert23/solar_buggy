@@ -26,14 +26,13 @@ def get_sample_data():
 
 
 def read_serial():
-    # rate = rospy.Rate(1)
     while not rospy.is_shutdown():
         if serU.in_waiting == 0:
             continue
 
         try:
             data = json.loads(serU.readline())
-            # data = json.loads(input_sample)
+            # data = get_sample_data()
             
             # Publishing gps data.
             gps_pub.publish(
@@ -55,9 +54,10 @@ def read_serial():
                 left = data['ultrasonic']['3'],
             )
 
-        except ValueError:
+        except ValueError or KeyError:
             continue
 
+        # rate = rospy.Rate(1)
         # rate.sleep()
 
 
