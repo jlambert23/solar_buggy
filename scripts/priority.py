@@ -12,7 +12,7 @@ def ultra_handler(command):
 
 def gps_handler(command):
     if (command.data == 'destination_reached'):
-        print('Not today ISIS!!')
+        rospy.loginfo('Not today ISIS!!')
         controller('stop')
 
     if (command.data != 'turn_around'):

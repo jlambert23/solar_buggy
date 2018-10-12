@@ -9,14 +9,14 @@
         "all_stop": 0,
         "left": {
             "full_speed": 127,
-            "half_speed": 65,
+            "half_speed": 79,
             "rev_full_speed": 1,
             "rev_half_speed": 32,
             "stop": 64
         },
         "right": {
             "full_speed": 255,
-            "half_speed": 193,
+            "half_speed": 207,
             "rev_full_speed": 128,
             "rev_half_speed": 160,
             "stop": 192

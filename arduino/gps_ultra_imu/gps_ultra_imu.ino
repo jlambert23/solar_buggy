@@ -139,4 +139,8 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz)
 
   // Serial.print("Heading: "); Serial.println(heading, 2);
 
+  if (heading < 0)
+    heading += 180;
+
   gpsJson["IMU"] = heading;
+}
