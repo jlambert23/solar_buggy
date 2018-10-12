@@ -23,31 +23,32 @@ def controller(pose):
     # angular velocity and linear velocity do not co-exist at this time.
     # meaning, the vehicle does not turn and move forward at the same time.
     
+    if pose.angular_velocity > 63:
+        pose.angular_velocity = 63
+    elif pose.angular_velocity < -63:
+        pose.angular_velocity = -63
+    if pose.linear_velocity > 63:
+        pose.linear_velocity = 63
+    elif pose.linear_velocity < -63:
+        pose.linear_velocity = 63
+
+    # rotate clockwise
     if pose.angular_velocity > 0:
-        # rotate clockwise
-        if pose.angular_velocity > 63:
-            pose.angular_velocity = 63
+        left_adjust = min(pose.linear_velocity + pose.angular_velocity, 63)
+        right_adjust = pose.linear_velocity
 
-        serialMotors.write(chr(int(motor['left']['stop'] + pose.angular_velocity)))
-        serialMotors.write(chr(int(motor['right']['stop'])))
-
+    # rotate counter-clockwise
     elif pose.angular_velocity < 0:
-        # rotate counter-clockwise
-        if pose.angular_velocity < -63:
-            pose.angular_velocity = -63
+        left_adjust = pose.linear_velocity
+        right_adjust = min(pose.linear_velocity - pose.angular_velocity, 63)
 
-        serialMotors.write(chr(int(motor['left']['stop'])))
-        serialMotors.write(chr(int(motor['right']['stop'] - pose.angular_velocity)))
-
+    # go straight
     else:
-        # go straight
-        if pose.linear_velocity > 63:
-            pose.linear_velocity = 63
-        elif pose.linear_velocity < 0:
-            pose.linear_velocity = 0
+        left_adjust = pose.linear_velocity
+        right_adjust = pose.linear_velocity
 
-        serialMotors.write(chr(int(motor['left']['stop'] + pose.linear_velocity))) 
-        serialMotors.write(chr(int(motor['right']['stop'] + pose.linear_velocity)))
+    serialMotors.write(chr(int(motor['left']['stop'] + left_adjust))) 
+    serialMotors.write(chr(int(motor['right']['stop'] + right_adjust)))
     
 def stop():
     rospy.loginfo('Stop')

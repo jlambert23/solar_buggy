@@ -40,8 +40,8 @@ def read_serial():
 
             # Publishing gps data.
             gps_pub.publish(
-                coordinates = coordinates,
-                bearing = data['gps']['IMU']
+                coordinates = coordinates
+                #bearing = data['gps']['IMU']
             )
 
             # Publishing waypoint data.

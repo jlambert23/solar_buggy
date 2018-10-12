@@ -2,10 +2,10 @@
 
 import rospy
 from std_msgs.msg import String
-from solar_buggy.msg import Ultrasonic
+from solar_buggy.msg import Ultrasonic, Pose
 from get_config import config
 
-pub = rospy.Publisher('ultra_cmd', String, queue_size=10)
+cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
 sensors_clear = {
     'left': True,
@@ -20,7 +20,6 @@ bit string order (MSB -> LSB): back, right, left, front
 
 def handler(ultra):
     sensor_info = 0b0
-    command = ''
     
     if ultra.front < 30.0:
         sensor_info |= 0b0001
@@ -33,25 +32,38 @@ def handler(ultra):
     #print sensor_info
     #print ultra
 
+    pose = Pose()
+
     if (sensor_info == 7):
-        command = 'reverse_full_speed'
+        # reverse full speed
+        pose.linear_velocity = -64
     elif (sensor_info == 5): 
-        command = 'left'
+        # turn left
+        pose.angular_velocity = -64
     elif (sensor_info == 3): 
-        command = 'right'
+        # turn right
+        pose.angular_velocity = 64
     elif (sensor_info == 6): 
-        command = 'full_speed'
+        # full speed
+        pose.linear_velocity = 64
     elif (sensor_info == 4): 
-        command = 'veer_left'
+        # veer left; not applicable with current setup
+        pose.angular_velocity = -32
+        pose.linear_velocity = 32
     elif (sensor_info == 2): 
-        command = 'veer_right'
-        # Should reconfigure this to maybe incorporate info from other sensors
+        # veer right; not applicable with current setup
+        pose.angular_velocity = 32
+        pose.linear_velocity = 32
+
+    # Should reconfigure this to maybe incorporate info from other sensors
     elif (sensor_info == 1): 
-        command = 'veer_left'
+        # turn right
+        pose.angular_velocity = 64
     else: 
-        command = 'full_speed'
+        # full speed
+        pose.linear_velocity = 64
     
-    pub.publish(command)     
+    cmd_pub.publish(pose)
 
 if __name__ == '__main__':
     rospy.init_node('ultrasonic', anonymous=True)
