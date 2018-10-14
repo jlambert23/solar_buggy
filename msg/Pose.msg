@@ -1,4 +1,4 @@
 geographic_msgs/GeoPoint coordinates
 float32 bearing
-int16 linear_velocity
-int16 angular_velocity
+int16 left_wheel_velocity
+int16 right_wheel_velocity

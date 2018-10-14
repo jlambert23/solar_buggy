@@ -23,14 +23,11 @@ void setup() {
 }
 
 void loop() {  
-  long startTime = millis();
   
   ultrasonic();
-  //root.printTo(Serial);
-  //Serial.println();
+  root.printTo(Serial);
+  Serial.println();
   
-  long time = millis() - startTime;
-  Serial.println(time);
 }
 void ultrasonic()
 {
@@ -45,8 +42,7 @@ void ultrasonic()
     duration = pulseIn(echoPins[i], HIGH);
     
     distance = duration*0.034/2;
-    distance = distance > 1000 ? 300 : distance
     
-    ultraJson[String(i)] = distance;
+    ultraJson[String(i)] = distance/2.54;
   }
 }

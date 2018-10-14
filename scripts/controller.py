@@ -23,6 +23,7 @@ def controller(pose):
     # angular velocity and linear velocity do not co-exist at this time.
     # meaning, the vehicle does not turn and move forward at the same time.
     
+    '''
     if pose.angular_velocity > 63:
         pose.angular_velocity = 63
     elif pose.angular_velocity < -63:
@@ -46,10 +47,11 @@ def controller(pose):
     else:
         left_adjust = pose.linear_velocity
         right_adjust = pose.linear_velocity
-
-    serialMotors.write(chr(int(motor['left']['stop'] + left_adjust))) 
-    serialMotors.write(chr(int(motor['right']['stop'] + right_adjust)))
+    '''
     
+    serialMotors.write(chr(int(motor['left']['stop'] + pose.left_wheel_velocity)))
+    serialMotors.write(chr(int(motor['right']['stop'] + pose.right_wheel_velocity))) 
+
 def stop():
     rospy.loginfo('Stop')
     serialMotors.write(chr(int(motor['left']['stop'])))

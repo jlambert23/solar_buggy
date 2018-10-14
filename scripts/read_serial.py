@@ -34,21 +34,21 @@ def read_serial():
             data = json.loads(serU.readline())
             #data = get_sample_data()
             
-            coordinates = GeoPoint()
-            coordinates.latitude = data['gps']['latitude']
-            coordinates.longitude = data['gps']['longitude']
+            #coordinates = GeoPoint()
+            #coordinates.latitude = data['gps']['latitude']
+            #coordinates.longitude = data['gps']['longitude']
 
             # Publishing gps data.
-            gps_pub.publish(
-                coordinates = coordinates
+            #gps_pub.publish(
+            #    coordinates = coordinates
                 #bearing = data['gps']['IMU']
-            )
+            #)
 
             # Publishing waypoint data.
-            wp_pub.publish(
-                distance = data['gps']['waypoint']['distance'],
-                bearing = data['gps']['waypoint']['bearing']
-            )
+            #wp_pub.publish(
+            #    distance = data['gps']['waypoint']['distance'],
+            #    bearing = data['gps']['waypoint']['bearing']
+            #)
 
             # Publishing ultrasonic data.
             ultra_pub.publish(
@@ -59,8 +59,6 @@ def read_serial():
             )
 
         except ValueError:
-            continue
-        except KeyError:
             continue
 
         #rate = rospy.Rate(1)
