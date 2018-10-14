@@ -19,9 +19,6 @@ motor['right'] = {
 }
 
 def controller(pose):
-
-    # angular velocity and linear velocity do not co-exist at this time.
-    # meaning, the vehicle does not turn and move forward at the same time.
     
     '''
     if pose.angular_velocity > 63:
@@ -31,7 +28,7 @@ def controller(pose):
     if pose.linear_velocity > 63:
         pose.linear_velocity = 63
     elif pose.linear_velocity < -63:
-        pose.linear_velocity = 63
+        pose.linear_velocity = -63
 
     # rotate clockwise
     if pose.angular_velocity > 0:
