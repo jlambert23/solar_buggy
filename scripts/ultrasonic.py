@@ -3,7 +3,6 @@
 import rospy
 from std_msgs.msg import String
 from solar_buggy.msg import Ultrasonic, Pose
-from get_config import config
 
 cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
