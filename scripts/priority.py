@@ -1,22 +1,23 @@
 #!/usr/bin/env python
 
 import rospy
+from solar_buggy.msg import Pose
 from solar_buggy.srv import Controller
 from std_msgs.msg import String
 
-controller = rospy.ServiceProxy('controller', Controller)
+control_pub = rospy.Publisher('cmd_vel', Pose, queue_size=10)
 
-def ultra_handler(command):
-    print(command.data)
-    controller(command.data)
+def ultra_handler(pose):
+    #print(pose)
+    control_pub.publish(pose)
 
 def gps_handler(command):
     if (command.data == 'destination_reached'):
-        print('Not today ISIS!!')
-        controller('stop')
+        rospy.loginfo('Not today ISIS!!')
+        #controller('stop')
 
-    if (command.data != 'turn_around'):
-        controller(command.data)
+    #if (command.data != 'turn_around'):
+        #controller(command.data)
 
 def camera_handler(command):
     print(command.data)
@@ -24,9 +25,8 @@ def camera_handler(command):
 
 if __name__ == '__main__':
     rospy.init_node('priority', anonymous=True)
-    #rospy.Subscriber('ultra_cmd', String, ultra_handler)
-    #rospy.Subscriber('gps_cmd', String, gps_handler)
-    rospy.Subscriber('camera_cmd', String, camera_handler)
+    
+    rospy.Subscriber('ultra_vel', Pose, ultra_handler)
+    #rospy.Subscriber('gps_vel', Pose, gps_handler)
 
     rospy.spin()
-

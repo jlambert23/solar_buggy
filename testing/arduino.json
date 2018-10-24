@@ -10,6 +10,7 @@
             "distance": 253,
             "bearing": 143.28
         }, 
+        "IMU": 45.0,
         "latitude": 28.5853905, 
         "longitude": -81.2001379
     }

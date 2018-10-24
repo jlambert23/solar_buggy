@@ -5,10 +5,13 @@ import math
 
 from std_msgs.msg import String
 from geographic_msgs.msg import GeoPoint
-from solar_buggy.msg import RelationalWayPoint
+from solar_buggy.msg import RelationalWayPoint, Pose
 
-# Tolerance for vehicle to satisfy waypoint in feet.
-DISTANCE_TOLERANCE = 5.0
+DISTANCE_TOLERANCE = 20.0 # in feet
+ANGULAR_TOLERANCE = 15.0 # in degrees
+
+def find_delta(x, y):
+    return (x - y + 180) % 360 - 180
 
 class GpsNode:
 
@@ -19,14 +22,15 @@ class GpsNode:
         self.distance_tolerance = round(DISTANCE_TOLERANCE / 5280.0, 8)    
         
         self.waypoint = RelationalWayPoint()
-        self.location = GeoPoint()
+        self.coordinates = GeoPoint()
 
         self.cmd_pub = rospy.Publisher('gps_cmd', String, queue_size=10)
-        self.geopoint_sub = rospy.Subscriber('gps', GeoPoint, self.update_location)
+        self.geopoint_sub = rospy.Subscriber('gps', Pose, self.update_pose)
         self.waypoint_sub = rospy.Subscriber('waypoint', RelationalWayPoint, self.update_waypoint)
 
-    def update_location(self, data):
-        self.location = data
+    def update_pose(self, data):
+        self.coordinates = data.coordinates
+        self.bearing = data.bearing
 
     def update_waypoint(self, data):
         if self.waypoint is not None:
@@ -38,20 +42,24 @@ class GpsNode:
         self.move2goal()
 
     def move2goal(self):
-        if self.location is None or (self.location.latitude == 0 and self.location.longitude == 0):
+        if self.coordinates.latitude == 0 and self.coordinates.longitude == 0:
             rospy.loginfo('Waiting for fix...')
             return
 
         if self.waypoint.distance >= self.distance_tolerance:
-            if self.waypoint.bearing < self.waypoint_old.bearing:
-                self.cmd_pub.publish('left')
-            elif self.waypoint.bearing > self.waypoint_old.bearing:
+            bearing_delta = find_delta(self.bearing, self.waypoint.bearing)
+
+            if bearing_delta < 0 - ANGULAR_TOLERANCE:
+                #clock-wise; turn right
                 self.cmd_pub.publish('right')
+
+            elif bearing_delta > ANGULAR_TOLERANCE:
+                # counter clock-wise; turn left
+                self.cmd_pub.publish('left')
+
             else:
-                if self.waypoint.distance > self.waypoint_old.distance:
-                    self.cmd_pub.publish('turn_around')
-                else:
-                    self.cmd_pub.publish('full_speed')
+                self.cmd_pub.publish('half_speed')
+
         else:
             self.cmd_pub.publish('destination_reached')
         

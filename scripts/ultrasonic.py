@@ -2,10 +2,9 @@
 
 import rospy
 from std_msgs.msg import String
-from solar_buggy.msg import Ultrasonic
-from get_config import config
+from solar_buggy.msg import Ultrasonic, Pose
 
-pub = rospy.Publisher('ultra_cmd', String, queue_size=10)
+cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
 sensors_clear = {
     'left': True,
@@ -16,44 +15,115 @@ sensors_clear = {
 
 '''
 bit string order (MSB -> LSB): back, right, left, front
+
+sensor order is:
+    right: 1
+    front: 2
+    left: 3
 '''
 
-def handler(ultra):
-    sensor_info = 0b0
-    command = ''
-    
-    if ultra.front < 30.0:
-        sensor_info |= 0b0001
-    if ultra.left < 30.0:
-        sensor_info |= 0b0010
-    if ultra.right < 30.0:
-        sensor_info |= 0b0100
-    #if ultra.back < 30.0:
-    #    sensor_info |= 0b1000
-    #print sensor_info
-    #print ultra
+class UltraNode:
 
-    if (sensor_info == 7):
-        command = 'reverse_full_speed'
-    elif (sensor_info == 5): 
-        command = 'left'
-    elif (sensor_info == 3): 
-        command = 'right'
-    elif (sensor_info == 6): 
-        command = 'full_speed'
-    elif (sensor_info == 4): 
-        command = 'veer_left'
-    elif (sensor_info == 2): 
-        command = 'veer_right'
-        # Should reconfigure this to maybe incorporate info from other sensors
-    elif (sensor_info == 1): 
-        command = 'veer_left'
-    else: 
-        command = 'full_speed'
-    
-    pub.publish(command)     
+    def __init__(self):
+        self.left_wheel = 0.0
+        self.right_wheel = 0.0
+        self.inconsistencies = 0
+        self.warning = False
+
+    def handler(self, ultra):
+        pose = Pose()
+        sensor_info = 0b0
+        
+        if ultra.front < 15.0:
+            sensor_info |= 0b0001
+        if ultra.left < 15.0:
+            sensor_info |= 0b0010
+        if ultra.right < 15.0:
+            sensor_info |= 0b0100
+        
+        if ultra.front < 10.00 or ultra.left < 10.0 or ultra.right < 10.00:
+            self.inconsistencies = 0
+
+            if not self.warning:
+                self.left_wheel = 0
+                self.right_wheel = 0
+                self.warning = True
+            
+            if ultra.right < 10.00:            
+                self.left_wheel -= 1
+                self.right_wheel += 1
+            else:
+                self.left_wheel += 1
+                self.right_wheel -= 1
+            
+            if self.left_wheel > 32:
+                self.left_wheel = 32
+            elif self.left_wheel < -32:
+                self.left_wheel = -32
+            
+            if self.right_wheel > 32:
+                self.right_wheel = 32
+            elif self.right_wheel < -32:
+                self.right_wheel = -32            
+
+            pose.left_wheel_velocity = self.left_wheel
+            pose.right_wheel_velocity = self.right_wheel
+            
+            cmd_pub.publish(pose)
+            return
+
+        if self.warning:
+            if self.inconsistencies > 3:
+                self.warning = False
+            else:
+                self.inconsistencies += 1
+                return
+
+        #if ultra.back < 30.0:
+        #    sensor_info |= 0b1000
+        #print sensor_info
+        #print ultra
+           
+        if sensor_info == 2: # left
+            self.left_wheel += 3
+            self.right_wheel -= 3
+        elif sensor_info == 4: # right
+            self.left_wheel -= 3
+            self.right_wheel += 3
+        elif sensor_info == 1: # front
+            self.left_wheel -= 3
+            self.right_wheel += 3
+        elif sensor_info == 5:
+            self.left_wheel -= 5
+            self.right_wheel += 5
+        elif sensor_info == 3:
+            self.left_wheel += 5
+            self.right_wheel -= 5
+        elif sensor_info == 0: # clear
+            if self.left_wheel <= self.right_wheel:
+                self.left_wheel = self.right_wheel
+            if self.right_wheel <= self.left_wheel:
+                self.right_wheel = self.left_wheel
+            self.left_wheel += 1
+            self.right_wheel += 1
+
+        if self.left_wheel > 32:
+            self.left_wheel = 32
+        elif self.left_wheel < -32:
+            self.left_wheel = -32
+        
+        if self.right_wheel > 32:
+            self.right_wheel = 32
+        elif self.right_wheel < -32:
+            self.right_wheel = -32
+
+        pose.left_wheel_velocity = self.left_wheel
+        pose.right_wheel_velocity = self.right_wheel
+        cmd_pub.publish(pose)
 
 if __name__ == '__main__':
     rospy.init_node('ultrasonic', anonymous=True)
-    rospy.Subscriber('ultrasonic', Ultrasonic, handler)
+
+    ultra = UltraNode()
+    rospy.Subscriber('ultrasonic', Ultrasonic, ultra.handler)
     rospy.spin()
