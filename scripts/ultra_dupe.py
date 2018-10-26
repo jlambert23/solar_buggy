@@ -4,7 +4,7 @@ import rospy
 from std_msgs.msg import String
 from solar_buggy.msg import Ultrasonic, Pose
 
-cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
+cmd_pub = rospy.Publisher('cam_vel', Pose, queue_size=10)
 
 sensors_clear = {
     'left': True,
@@ -32,7 +32,7 @@ class UltraNode:
 
     def handler(self, ultra):
         pose = Pose()
-        pose.source = 'ultrasonic'
+        pose.source = 'camera'
         sensor_info = 0b0
         
         if ultra.front < 15.0:
@@ -123,7 +123,7 @@ class UltraNode:
         cmd_pub.publish(pose)
 
 if __name__ == '__main__':
-    rospy.init_node('ultrasonic', anonymous=True)
+    rospy.init_node('camera', anonymous=True)
 
     ultra = UltraNode()
     rospy.Subscriber('ultrasonic', Ultrasonic, ultra.handler)
