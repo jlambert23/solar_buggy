@@ -4,11 +4,7 @@ import rospy
 from solar_buggy.msg import Pose
 from solar_buggy.srv import Controller
 from std_msgs.msg import String
-import heapq
 
-priority = {'ultrasonic': 1, 'camera': 2, 'gps': 3}
-
-''' We're using a MinHeap y'all! '''
 class PriorityStack:
 
     def __init__(self):
@@ -27,7 +23,6 @@ class PriorityStack:
         self.cmd_publisher.publish(pose)
             
     def ultra_handler(self, pose):
-        
         # iterate through the stack
         for i in self.stack:
 
@@ -45,7 +40,6 @@ class PriorityStack:
                 return
 
     def cam_handler(self, pose):
-            
         # iterate through the stack
         for i in self.stack:
 
@@ -63,7 +57,6 @@ class PriorityStack:
                 return
 
     def gps_handler(self, pose):
-        
         # iterate through the stack
         for i in self.stack:
 
@@ -79,7 +72,6 @@ class PriorityStack:
                     self._publish_command(pose)
 
                 return
-
 
 if __name__ == '__main__':
     ps = PriorityStack()
