@@ -24,9 +24,9 @@ def get_sample_data():
     
     return data
 
-
 def read_serial():
     is_serial = False
+
     while not is_serial:
         try:
             serU = serial.Serial('/dev/ttyACM0', 9600)
@@ -40,42 +40,69 @@ def read_serial():
         if serU.in_waiting == 0:
             continue
 
-        try:
-            data = json.loads(serU.readline())
-            #data = get_sample_data()
-            
-            #coordinates = GeoPoint()
-            #coordinates.latitude = data['gps']['latitude']
-            #coordinates.longitude = data['gps']['longitude']
+        read_serial_csv()
 
-            # Publishing gps data.
-            #gps_pub.publish(
-            #    coordinates = coordinates
-                #bearing = data['gps']['IMU']
-            #)
+def read_serial_csv():
+    # ultrasonic_0, ultrasonic_1, ultrasonic_2, ultrasonic_3, longitude, latitude, heading, distance, bearing    
+    data = serU.readline().split(',')
 
-            # Publishing waypoint data.
-            #wp_pub.publish(
-            #    distance = data['gps']['waypoint']['distance'],
-            #    bearing = data['gps']['waypoint']['bearing']
-            #)
+    try:
+        ultra_pub.publish(
+            back = float(data[0]),
+            right = float(data[1]),
+            front = float(data[2]),
+            left = float(data[3])
+        )
 
-            # Publishing ultrasonic data.
-            ultra_pub.publish(
-                back = data['ultrasonic']['0'],
-                right = data['ultrasonic']['1'],
-                front = data['ultrasonic']['2'],
-                left = data['ultrasonic']['3'],
-            )
+        coordinates = GeoPoint()
+        coordinates.longitude = float(data[4])
+        coordinates.latitude = float(data[5])
 
-        except KeyError:
-            continue
-        except ValueError:
-            continue
+        gps_pub.publish(
+            coordinates = coordinates,
+            bearing = float(data[6])
+        )
 
-        #rate = rospy.Rate(1)
-        #rate.sleep()
+        wp_pub.publish(
+            distance = float(data[7]),
+            bearing = float(data[8])
+        )
+    
+    except IndexError:
+        return
 
+def read_serial_json():
+    data = json.loads(serU.readline())
+
+    try:
+        coordinates = GeoPoint()
+        coordinates.latitude = data['gps']['latitude']
+        coordinates.longitude = data['gps']['longitude']
+
+        # Publishing gps data.
+        gps_pub.publish(
+            coordinates = coordinates,
+            bearing = data['gps']['heading']
+        )
+
+        # Publishing waypoint data.
+        wp_pub.publish(
+            distance = data['gps']['waypoint']['distance'],
+            bearing = data['gps']['waypoint']['bearing']
+        )
+
+        # Publishing ultrasonic data.
+        ultra_pub.publish(
+            back = data['ultrasonic']['0'],
+            right = data['ultrasonic']['1'],
+            front = data['ultrasonic']['2'],
+            left = data['ultrasonic']['3'],
+        )
+
+    except KeyError:
+        return
+    except ValueError:
+        return
 
 if __name__ == '__main__':
     rospy.init_node('read_serial', anonymous=True)
