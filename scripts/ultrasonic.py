@@ -4,14 +4,10 @@ import rospy
 from std_msgs.msg import String
 from solar_buggy.msg import Ultrasonic, Pose
 
-cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
+HIGH_THRESHOLD = 30.0
+LOW_THRESHOLD = 15.0
 
-sensors_clear = {
-    'left': True,
-    'front': True,
-    'right': True,
-    'back': True
-}
+cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
 '''
 bit string order (MSB -> LSB): back, right, left, front
@@ -30,19 +26,33 @@ class UltraNode:
         self.inconsistencies = 0
         self.warning = False
 
+    def update_pose(self, pose):
+        self.left_wheel = pose.left_wheel_velocity
+        self.right_wheel = pose.right_wheel_velocity
+
     def handler(self, ultra):
         pose = Pose()
         pose.source = 'ultrasonic'
+        pose.status = 1
         sensor_info = 0b0
-        
-        if ultra.front < 15.0:
+
+        if ultra.front == -1:
+            ultra.front = float("inf")
+        if ultra.left == -1:
+            ultra.left = float("inf")
+        if ultra.right == -1:
+            ultra.right = float("inf")
+        if ultra.back == -1:
+            ultra.back = float("inf")
+
+        if ultra.front < HIGH_THRESHOLD:
             sensor_info |= 0b0001
-        if ultra.left < 15.0:
+        if ultra.left < HIGH_THRESHOLD:
             sensor_info |= 0b0010
-        if ultra.right < 15.0:
+        if ultra.right < HIGH_THRESHOLD:
             sensor_info |= 0b0100
         
-        if ultra.front < 10.00 or ultra.left < 10.0 or ultra.right < 10.00:
+        if ultra.front < LOW_THRESHOLD or ultra.left < LOW_THRESHOLD or ultra.right < LOW_THRESHOLD:
             self.inconsistencies = 0
 
             if not self.warning:
@@ -50,7 +60,7 @@ class UltraNode:
                 self.right_wheel = 0
                 self.warning = True
             
-            if ultra.right < 10.00:            
+            if ultra.right < LOW_THRESHOLD:            
                 self.left_wheel -= 1
                 self.right_wheel += 1
             else:
@@ -101,12 +111,9 @@ class UltraNode:
             self.left_wheel += 5
             self.right_wheel -= 5
         elif sensor_info == 0: # clear
-            if self.left_wheel <= self.right_wheel:
-                self.left_wheel = self.right_wheel
-            if self.right_wheel <= self.left_wheel:
-                self.right_wheel = self.left_wheel
-            self.left_wheel += 1
-            self.right_wheel += 1
+            pose.status = 0
+            cmd_pub.publish(pose)
+            return 
 
         if self.left_wheel > 32:
             self.left_wheel = 32
@@ -127,4 +134,5 @@ if __name__ == '__main__':
 
     ultra = UltraNode()
     rospy.Subscriber('ultrasonic', Ultrasonic, ultra.handler)
+    rospy.Subscriber('cmd_vel', Pose, ultra.update_pose)
     rospy.spin()

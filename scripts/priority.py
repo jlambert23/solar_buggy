@@ -20,9 +20,19 @@ class PriorityStack:
         ]        
 
     def _publish_command(self, pose):
-        self.cmd_publisher.publish(pose)
+        # Don't send a command if gps is not giving commands; i.e., if we don't have a waypoint or a fix
+        if (self.stack[2][1] != 0):
+            self.cmd_publisher.publish(pose)
+        else:
+            pose = Pose()
+            pose.source = "Priority (destination reached)"
+            pose.left_wheel_velocity = 0
+            pose.right_wheel_velocity = 0
+            self.cmd_publisher.publish(pose)
             
     def ultra_handler(self, pose):
+        self.stack[0][1] = int(pose.status)
+
         # iterate through the stack
         for i in self.stack:
 
@@ -40,6 +50,8 @@ class PriorityStack:
                 return
 
     def cam_handler(self, pose):
+        self.stack[1][1] = int(pose.status)
+
         # iterate through the stack
         for i in self.stack:
 
@@ -57,6 +69,8 @@ class PriorityStack:
                 return
 
     def gps_handler(self, pose):
+        self.stack[2][1] = int(pose.status)
+
         # iterate through the stack
         for i in self.stack:
 
@@ -66,9 +80,13 @@ class PriorityStack:
 
             # store sensor status and publish command if status is not 0
             elif i[0] == 'gps':
-                i[1] = int(pose.status)
-
                 if i[1] != 0:
+                    self._publish_command(pose)
+
+                # destination reached
+                else:
+                    pose.left_wheel_velocity = 0
+                    pose.right_wheel_velocity = 0
                     self._publish_command(pose)
 
                 return

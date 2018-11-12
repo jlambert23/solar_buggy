@@ -12,6 +12,7 @@ find_package(catkin REQUIRED
 
 add_message_files(
   FILES
+  GeoPose.msg
   Pose.msg
   RelationalWayPoint.msg
   Ultrasonic.msg
