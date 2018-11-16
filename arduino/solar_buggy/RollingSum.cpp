@@ -2,7 +2,7 @@
 #include "RollingSum.h"
 
 RollingSum::RollingSum(int size) {
-  _queue = (int*) calloc(sizeof(int) , size);
+  _queue = (float*) calloc(sizeof(float) , size);
   _size = size;
   _index = 0;
   length = 0;
@@ -17,3 +17,12 @@ void RollingSum::push(float value) {
   ++_index %= _size;
   if (length < _size) length++;
 };
+
+void RollingSum::print(HardwareSerial s) {
+  s.print("[");
+  for (int i = 0; i < length; i++) {
+    s.print(_queue[i]);
+    s.print(i < length - 1 ? ", " : "");
+  }
+  s.print("]\n");
+}

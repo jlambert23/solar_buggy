@@ -7,7 +7,7 @@ class RollingSum {
   private:
     int _size;
     int _index;
-    int *_queue;
+    float   *_queue;
 
   public:
     int length;
@@ -16,6 +16,7 @@ class RollingSum {
     RollingSum(int size);
     ~RollingSum();
     void push(float value);
+    void print(HardwareSerial s);
 };
 
 #endif
