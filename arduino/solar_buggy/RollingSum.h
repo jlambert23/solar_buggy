@@ -1,3 +1,8 @@
+#ifndef RollingSum_h
+#define RollingSum_h
+
+#include "Arduino.h"
+
 class RollingSum {
   private:
     int _size;
@@ -8,8 +13,9 @@ class RollingSum {
     int length;
     float sum;
 
-    RollingSum(int size)
-    ~RollingSum()
-    void push(float value)
+    RollingSum(int size);
+    ~RollingSum();
+    void push(float value);
 };
-}
+
+#endif
