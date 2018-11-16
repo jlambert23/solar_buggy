@@ -2,8 +2,7 @@
   <node name="read_serial" pkg="solar_buggy" type="read_serial.py" output="screen"/>
   <node name="ultrasonic" pkg="solar_buggy" type="ultrasonic.py" output="screen"/>
   <node name="gps" pkg="solar_buggy" type="gps.py" output="screen"/>
-  <!-- <node name="camera" pkg="solar_buggy" type="camera.py" output="screen"/> -->
+  <node name="camera" pkg="solar_buggy" type="camera.py" output="screen"/>
   <node name="priority" pkg="solar_buggy" type="priority.py" output="screen"/>
   <node name="controller" pkg="solar_buggy" type="controller.py" output="screen"/>
-  <!-- <node name="ekf_localization_node" pkg="robot_localization" type="ekf_localization_node"/> -->
 </launch>

@@ -12,9 +12,9 @@
 const int echoPins[] = { 4, 6, 8, 10 };
 const int trigPins[] = { 5, 7, 9, 11 };
 
-float Longitude = 28.5853905;
-float Latitude = -81.2001379;
-NeoGPS::Location_t destination( Longitude, Latitude );
+float LongLat[] = { 28.5853905, -81.2001379 };
+float LongLat2[] = { 28.5845915, -81.1997349 };
+NeoGPS::Location_t destination( LongLat[0], LongLat[1] );
 
 // Primary data variables.
 static gps_fix Fix;

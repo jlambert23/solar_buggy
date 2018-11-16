@@ -5,6 +5,8 @@ from solar_buggy.msg import Pose
 from solar_buggy.srv import Controller
 from std_msgs.msg import String
 
+USE_GPS = True
+
 class PriorityStack:
 
     def __init__(self):
@@ -20,6 +22,10 @@ class PriorityStack:
         ]        
 
     def _publish_command(self, pose):
+        if not USE_GPS:
+            self.cmd_publisher.publish(pose)
+            return
+
         # Don't send a command if gps is not giving commands; i.e., if we don't have a waypoint or a fix
         if (self.stack[2][1] != 0):
             self.cmd_publisher.publish(pose)
@@ -64,6 +70,11 @@ class PriorityStack:
                 i[1] = int(pose.status)
 
                 if i[1] != 0:
+                    self._publish_command(pose)
+
+                elif not USE_GPS:
+                    pose.left_wheel_velocity = 16
+                    pose.right_wheel_velocity = 16
                     self._publish_command(pose)
 
                 return

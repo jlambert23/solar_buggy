@@ -9,8 +9,8 @@ from solar_buggy.msg import RelationalWayPoint, Pose, GeoPose
 
 DISTANCE_TOLERANCE = 30 # in meters
 ANGULAR_TOLERANCE = 15.0 # in degrees
-BEARING_COEFF = 0.1 # Coefficient for proportional rotation control
-LOWEST_ANGULAR_VEL = 10
+BEARING_COEFF = 0.07 # Coefficient for proportional rotation control
+MAX_ANGULAR_VEL = 10
 
 def find_delta(x, y):
     return (x - y + 180) % 360 - 180
@@ -61,47 +61,51 @@ class GpsNode:
         if self.waypoint.distance >= self.distance_tolerance:
             bearing_delta = find_delta(self.bearing, self.waypoint.bearing)
 
-            print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
+            # print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
 
-            # Control for rotational velocity noise by a threshold of 1
-            if abs(self.bearing_old - bearing_delta) > 5:
-                rot_vel = abs(self.bearing_old) * BEARING_COEFF
+            # 'Normalize' bearing
+            if abs(self.bearing_old - bearing_delta) > 15:
+                p_controller = abs(self.bearing_old) * BEARING_COEFF
             else:
-                rot_vel = abs(bearing_delta) * BEARING_COEFF
+                p_controller = abs(bearing_delta) * BEARING_COEFF
             self.bearing_old = bearing_delta
 
-            # Rotation should not be lower than the lowest angular velocity in either direction
-            if rot_vel < LOWEST_ANGULAR_VEL and rot_vel >= 0:
-                rot_vel = LOWEST_ANGULAR_VEL
-            elif rot_vel > -LOWEST_ANGULAR_VEL and rot_vel < 0:
-                rot_vel = -LOWEST_ANGULAR_VEL
+            print(p_controller)
 
             #clock-wise; turn right
             if bearing_delta < 0 - ANGULAR_TOLERANCE:
-                self.left_wheel += rot_vel
-                self.right_wheel -= rot_vel * BEARING_COEFF
+                self.left_wheel += p_controller
+                self.right_wheel -= p_controller * BEARING_COEFF
 
             # counter clock-wise; turn left
             elif bearing_delta > ANGULAR_TOLERANCE:
-                self.left_wheel -= rot_vel * BEARING_COEFF
-                self.right_wheel += rot_vel
+                self.left_wheel -= p_controller * BEARING_COEFF
+                self.right_wheel += p_controller
 
             # Go straight(ish)
             else:
-                max_wheel = max(self.left_wheel, self.right_wheel)
-                self.left_wheel = 1 + max_wheel
-                self.right_wheel = 1 + max_wheel
+                max_speed = max(self.left_wheel, self.right_wheel)
+                self.left_wheel = 1 + max_speed
+                self.right_wheel = 1 + max_speed
+
+            ####
+            if self.left_wheel > self.right_wheel + MAX_ANGULAR_VEL:
+                self.left_wheel = self.right_wheel + MAX_ANGULAR_VEL
+            elif self.left_wheel < self.right_wheel - MAX_ANGULAR_VEL:
+                self.left_wheel = self.right_wheel - MAX_ANGULAR_VEL
+            elif self.right_wheel > self.left_wheel + MAX_ANGULAR_VEL:
+                self.right_wheel = self.left_wheel + MAX_ANGULAR_VEL
+            elif self.right_wheel < self.left_wheel - MAX_ANGULAR_VEL:
+                self.right_wheel = self.left_wheel - MAX_ANGULAR_VEL
 
             if self.left_wheel > 63:
                 self.left_wheel = 63
+            elif self.left_wheel < 0:
+                self.left_wheel = 0
             if self.right_wheel > 63:
                 self.right_wheel = 63
-
-            # Wheels will never be more than 32 apart. Also takes care of < 0.
-            if self.left_wheel < self.right_wheel - 32:
-                self.left_wheel = max(self.right_wheel - 32, 0)
-            elif self.right_wheel < self.left_wheel - 32:
-                self.right_wheel = max(self.left_wheel - 32, 0)
+            elif self.right_wheel < 0:
+                self.right_wheel = 0
         
             pose.left_wheel_velocity = self.left_wheel
             pose.right_wheel_velocity = self.right_wheel    

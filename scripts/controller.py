@@ -6,6 +6,10 @@ from solar_buggy.msg import Pose
 # Serial port for sensors and motors
 serialMotors  = serial.Serial('/dev/ttySAC0', 9600, timeout = 10)
 
+left_offset = 2
+right_offset = 0
+offset = max(left_offset, right_offset)
+
 motor = {}
 motor['left'] = {
     'reverse': [1, 63],
@@ -46,7 +50,17 @@ def controller(pose):
         right_adjust = pose.linear_velocity
     '''
     
-    serialMotors.write(chr(int(motor['left']['stop'] + pose.left_wheel_velocity)))
+    if pose.left_wheel_velocity > 63 - left_offset:
+        pose.left_wheel_velocity = 63 - left_offset
+    elif pose.left_wheel_velocity < -63 + left_offset:
+        pose.left_wheel_velocity = -63 + left_offset
+
+    if pose.right_wheel_velocity > 63 - right_offset:
+        pose.right_wheel_velocity = 63 - right_offset
+    elif pose.right_wheel_velocity < -63 + right_offset:
+        pose.right_wheel_velocity = -63 + right_offset
+
+    serialMotors.write(chr(int(motor['left']['stop'] + pose.left_wheel_velocity + left_offset)))
     serialMotors.write(chr(int(motor['right']['stop'] + pose.right_wheel_velocity))) 
 
 def stop():
