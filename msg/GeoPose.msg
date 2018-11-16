@@ -1,0 +1,2 @@
+geographic_msgs/GeoPoint coordinates
+float32 bearing
