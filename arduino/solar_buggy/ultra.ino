@@ -33,6 +33,7 @@ void read_ultrasonic()
     
     duration = pulseIn(echoPins[i], HIGH, TIMEOUT);
     distance = duration * SPEED_OF_SOUND / 2000;
+    if (distance == 0) distance = Distance[i];
     rs_ultra[i].push(distance);
     Distance[i] = rs_ultra[i].sum / rs_ultra[i].length;
   }
