@@ -8,20 +8,20 @@ JsonObject& ultraJson = root.createNestedObject("ultrasonic");
 void outputCSV() {
   // ultrasonic_0, ultrasonic_1, ultrasonic_2, ultrasonic_3, longitude, latitude, heading, distance, bearing
   for (int i = 0; i < ULTRASONICS; i++) {
-    OUTPUT_SERIAL.print(Distance[i]);
-    OUTPUT_SERIAL.print(", ");
+    LOG_PORT.print(Distance[i], 4);
+    LOG_PORT.print(", ");
   }
-  OUTPUT_SERIAL.print(Fix.longitude());
-  OUTPUT_SERIAL.print(", ");
-  OUTPUT_SERIAL.print(Fix.latitude());
-  OUTPUT_SERIAL.print(", ");
-  OUTPUT_SERIAL.print(Heading);
-  OUTPUT_SERIAL.print(", ");
-  OUTPUT_SERIAL.print(Fix.location.DistanceMiles(destination));
-  OUTPUT_SERIAL.print(", ");
-  OUTPUT_SERIAL.print(Fix.location.BearingToDegrees(destination));
+  LOG_PORT.print(Fix.longitude(), 4);
+  LOG_PORT.print(", ");
+  LOG_PORT.print(Fix.latitude(), 4);
+  LOG_PORT.print(", ");
+  LOG_PORT.print(Heading, 4);
+  LOG_PORT.print(", ");
+  LOG_PORT.print(Fix.location.DistanceMiles(destination), 4);
+  LOG_PORT.print(", ");
+  LOG_PORT.print(Fix.location.BearingToDegrees(destination), 4);
 
-  OUTPUT_SERIAL.println();
+  LOG_PORT.println();
 }
 
 void outputJSON() {
@@ -34,6 +34,6 @@ void outputJSON() {
     destJson["distance"] = Fix.location.DistanceMiles(destination);
     destJson["bearing"] = Fix.location.BearingToDegrees(destination);
     
-    root.printTo(OUTPUT_SERIAL);
-    OUTPUT_SERIAL.println();
+    root.printTo(LOG_PORT);
+    LOG_PORT.println();
 }

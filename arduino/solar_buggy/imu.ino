@@ -4,7 +4,6 @@
 #define HEADING_OFFSET 187
 
 RollingSum rs_imu(5);
-String buffer;
 float heading;
 
 void read_imu() {   
