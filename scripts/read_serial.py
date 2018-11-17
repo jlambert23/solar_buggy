@@ -13,7 +13,7 @@ class ReadSerial:
         self.gps_pub = rospy.Publisher('gps', GeoPose, queue_size=10)
         self.wp_pub = rospy.Publisher('waypoint', RelationalWayPoint, queue_size=10)
         self.ultra_pub = rospy.Publisher('ultrasonic', Ultrasonic, queue_size=10)
-        self.serU = serial.Serial(port, 9600)
+        self.serU = serial.Serial(port, 9600, timeout=3)
 
     def read_serial(self):
         while not rospy.is_shutdown():
@@ -25,7 +25,7 @@ class ReadSerial:
     def read_serial_csv(self):
         # ultrasonic_0, ultrasonic_1, ultrasonic_2, ultrasonic_3, longitude, latitude, heading, distance, bearing    
         data = self.serU.readline().split(',')
-
+        
         try:
             self.ultra_pub.publish(
                 back = float(data[0]),
@@ -86,12 +86,37 @@ class ReadSerial:
         except ValueError:
             return
 
+    def update_waypoint(self, longitude, latitude):
+        rate = rospy.Rate(10)
+        confirm = False
+
+        while not confirm:
+            self.serU.flush()
+
+            while self.serU.readline():
+                self.serU.write("#w") # Send waypoint command
+                print("Waiting for serial to clear...")
+
+            output = str(longitude) + "," + str(latitude)
+            print("Sending long/lat: " + output)
+            self.serU.write(output + '\n') # no space
+
+            ret = self.serU.readline().strip('\r\n')
+            confirm = ret == output.strip('\n')
+            print("Received: " + ret)
+
+            if not confirm:
+                print("Incorrect output... trying again.")
+                rate.sleep()
+            else:
+                print("Waypoint successfully entered... Resuming output.")
+                self.serU.write("#o") # Send output command
+                rate.sleep()
+
 if __name__ == '__main__':
     rs = ReadSerial()
+    # rs.update_waypoint(28.5845915, -81.1997349)
     rs.read_serial()
-    
-    while not rospy.is_shutdown():
-        rospy.sleep(1.0)
 
     rs.serU.close()
     
