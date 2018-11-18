@@ -13,7 +13,7 @@ class RollingSum {
     int length;
     float sum;
 
-    RollingSum(int size);
+    RollingSum(int size, float defaultVal = 0);
     ~RollingSum();
     void push(float value);
     void print(HardwareSerial s);

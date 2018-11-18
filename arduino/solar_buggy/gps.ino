@@ -4,8 +4,9 @@ byte baudrateCmd[] = {160, 161, 00, 04, 05, 00, 05, 00, 00, 13, 10}; // 115200  
 byte updateRate20HzCmd[] = {160, 161, 00, 03, 14, 20, 00, 26, 13, 10}; // 20 Hz     A0 A1 00 03 0E 14 00 1A 0D 0A
 byte updateRate10HzCmd[] = {160, 161, 00, 03, 14, 10, 00, 04, 13, 10}; // 10 Hz     A0 A1 00 03 0E 0A 00 04 0D 0A
 
-String buffer; // For input mode
+char buffer[40]; // For input mode
 String output;
+int i = 0;
 
 void setup_GPS() {
   GPS_SERIAL.begin(38400);
@@ -25,18 +26,20 @@ void read_gps() {
 
 void getLongLat(char c) {
   if (c == ',') {
-    output += buffer + ",";
-    Longitude = buffer.toFloat();
-    buffer = "";
+    buffer[i] = '\0';
+    output += String(buffer) + ",";
+    Longitude = atof(buffer);
+    i = 0;
   }
   else if (c == '\n') {
-    output += buffer;
-    Latitude = buffer.toFloat();    
-    buffer = "";
+    buffer[i] = '\0';
+    output += String(buffer);
+    Latitude = atof(buffer);    
+    i = 0;
     
     destination = NeoGPS::Location_t(Longitude, Latitude);
     LOG_PORT.println(output);
   }
   else
-    buffer += c;
+    buffer[i++] = c;
 }

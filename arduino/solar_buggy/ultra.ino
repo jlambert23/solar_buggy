@@ -11,7 +11,12 @@
 
 static long duration;
 static float distance;
-RollingSum rs_ultra[4] = {RollingSum(RS_ULTRA_SIZE),RollingSum(RS_ULTRA_SIZE),RollingSum(RS_ULTRA_SIZE),RollingSum(RS_ULTRA_SIZE)};
+RollingSum rs_ultra[4] = {
+  RollingSum(RS_ULTRA_SIZE, MAX_DISTANCE * 1.5),
+  RollingSum(RS_ULTRA_SIZE, MAX_DISTANCE * 1.5),
+  RollingSum(RS_ULTRA_SIZE, MAX_DISTANCE * 1.5),
+  RollingSum(RS_ULTRA_SIZE, MAX_DISTANCE * 1.5)
+};
 
 void setup_ultrasonic() {
   for (int i = 0; i < ULTRASONICS; i++) {

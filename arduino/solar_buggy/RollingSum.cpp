@@ -1,12 +1,15 @@
 #include "Arduino.h"
 #include "RollingSum.h"
 
-RollingSum::RollingSum(int size) {
-  _queue = (float*) calloc(sizeof(float) , size);
+RollingSum::RollingSum(int size, float defaultVal) {
+  _queue = (float*) malloc(sizeof(float) * size);
   _size = size;
   _index = 0;
   length = 0;
   sum = 0;
+  
+  for (int i = 0; i < size; i++)
+    _queue[i] = defaultVal;
 }
 
 RollingSum::~RollingSum() { free(_queue); _queue = NULL; }
