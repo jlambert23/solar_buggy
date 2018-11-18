@@ -3,7 +3,7 @@
 // Parameters
 #define MAX_DISTANCE 100 // in cm (For timeout; ~6500 mu)
 #define TIMEOUT_BUFFER 600 // in mu
-#define RS_ULTRA_SIZE 10
+#define RS_ULTRA_SIZE 2
 
 // Constants
 #define SPEED_OF_SOUND 34.3 // in cm/ms

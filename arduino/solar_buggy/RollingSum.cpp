@@ -8,8 +8,10 @@ RollingSum::RollingSum(int size, float defaultVal) {
   length = 0;
   sum = 0;
   
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; i++) {
     _queue[i] = defaultVal;
+    sum += _queue[i];
+  }
 }
 
 RollingSum::~RollingSum() { free(_queue); _queue = NULL; }

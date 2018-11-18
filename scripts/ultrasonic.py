@@ -4,8 +4,9 @@ import rospy
 from std_msgs.msg import String
 from solar_buggy.msg import Ultrasonic, Pose
 
-HIGH_THRESHOLD = 30.0
-LOW_THRESHOLD = 15.0
+HIGH_THRESHOLD = 35.0
+MID_THRESHOLD = 26.25
+LOW_THRESHOLD = 17.5
 
 cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
@@ -36,22 +37,6 @@ class UltraNode:
         pose.status = 1
         sensor_info = 0b0
 
-        if ultra.front == -1:
-            ultra.front = float("inf")
-        if ultra.left == -1:
-            ultra.left = float("inf")
-        if ultra.right == -1:
-            ultra.right = float("inf")
-        if ultra.back == -1:
-            ultra.back = float("inf")
-
-        if ultra.front < HIGH_THRESHOLD:
-            sensor_info |= 0b0001
-        if ultra.left < HIGH_THRESHOLD:
-            sensor_info |= 0b0010
-        if ultra.right < HIGH_THRESHOLD:
-            sensor_info |= 0b0100
-        
         if ultra.front < LOW_THRESHOLD or ultra.left < LOW_THRESHOLD or ultra.right < LOW_THRESHOLD:
             self.inconsistencies = 0
 
@@ -67,15 +52,15 @@ class UltraNode:
                 self.left_wheel += 1
                 self.right_wheel -= 1
             
-            if self.left_wheel > 32:
-                self.left_wheel = 32
-            elif self.left_wheel < -32:
-                self.left_wheel = -32
+            if self.left_wheel > 16:
+                self.left_wheel = 16
+            elif self.left_wheel < -16:
+                self.left_wheel = -16
             
-            if self.right_wheel > 32:
-                self.right_wheel = 32
-            elif self.right_wheel < -32:
-                self.right_wheel = -32            
+            if self.right_wheel > 16:
+                self.right_wheel = 16
+            elif self.right_wheel < -16:
+                self.right_wheel = -16            
 
             pose.left_wheel_velocity = self.left_wheel
             pose.right_wheel_velocity = self.right_wheel
@@ -83,38 +68,63 @@ class UltraNode:
             cmd_pub.publish(pose)
             return
 
+        elif ultra.left < MID_THRESHOLD or ultra.right < MID_THRESHOLD or ultra.front < MID_THRESHOLD:
+            if ultra.front < MID_THRESHOLD:
+                sensor_info |= 0b0001
+            if ultra.left < MID_THRESHOLD:
+                sensor_info |= 0b0010
+            if ultra.right < MID_THRESHOLD:
+                sensor_info |= 0b0100
+                    
+            if sensor_info == 2: # left
+                self.left_wheel += 3
+                self.right_wheel -= 3
+            elif sensor_info == 4: # right
+                self.left_wheel -= 3
+                self.right_wheel += 3
+            elif sensor_info == 1: # front
+                self.left_wheel -= 3
+                self.right_wheel += 3
+            elif sensor_info == 5:
+                self.left_wheel -= 5
+                self.right_wheel += 5
+            elif sensor_info == 3:
+                self.left_wheel += 5
+                self.right_wheel -= 5
+
+        elif ultra.left < HIGH_THRESHOLD or ultra.right < HIGH_THRESHOLD or ultra.front < HIGH_THRESHOLD:
+            if ultra.front < HIGH_THRESHOLD:
+                sensor_info |= 0b0001
+            if ultra.left < HIGH_THRESHOLD:
+                sensor_info |= 0b0010
+            if ultra.right < HIGH_THRESHOLD:
+                sensor_info |= 0b0100
+                    
+            if sensor_info == 2: # left
+                self.left_wheel += 1
+                self.right_wheel -= 1
+            elif sensor_info == 4: # right
+                self.left_wheel -= 1
+                self.right_wheel += 1
+            elif sensor_info == 1: # front
+                self.left_wheel -= 1
+                self.right_wheel += 1
+            elif sensor_info == 5:
+                self.left_wheel -= 3
+                self.right_wheel += 3
+            elif sensor_info == 3:
+                self.left_wheel += 3
+                self.right_wheel -= 3
+        else:
+            pose.status = 0
+
         if self.warning:
             if self.inconsistencies > 3:
                 self.warning = False
             else:
                 self.inconsistencies += 1
                 return
-
-        #if ultra.back < 30.0:
-        #    sensor_info |= 0b1000
-        #print sensor_info
-        #print ultra
-           
-        if sensor_info == 2: # left
-            self.left_wheel += 3
-            self.right_wheel -= 3
-        elif sensor_info == 4: # right
-            self.left_wheel -= 3
-            self.right_wheel += 3
-        elif sensor_info == 1: # front
-            self.left_wheel -= 3
-            self.right_wheel += 3
-        elif sensor_info == 5:
-            self.left_wheel -= 5
-            self.right_wheel += 5
-        elif sensor_info == 3:
-            self.left_wheel += 5
-            self.right_wheel -= 5
-        elif sensor_info == 0: # clear
-            pose.status = 0
-            cmd_pub.publish(pose)
-            return 
-
+        
         if self.left_wheel > 32:
             self.left_wheel = 32
         elif self.left_wheel < -32:
