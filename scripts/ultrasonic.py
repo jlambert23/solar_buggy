@@ -8,6 +8,8 @@ HIGH_THRESHOLD = 35.0
 MID_THRESHOLD = 26.25
 LOW_THRESHOLD = 17.5
 
+MAX_ANGULAR_VEL = 15.0
+
 cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
 '''
@@ -124,16 +126,24 @@ class UltraNode:
             else:
                 self.inconsistencies += 1
                 return
-        
+
         if self.left_wheel > 32:
             self.left_wheel = 32
         elif self.left_wheel < -32:
             self.left_wheel = -32
-        
         if self.right_wheel > 32:
             self.right_wheel = 32
         elif self.right_wheel < -32:
             self.right_wheel = -32
+
+        if self.left_wheel > self.right_wheel + MAX_ANGULAR_VEL:
+            self.left_wheel = self.right_wheel + MAX_ANGULAR_VEL
+        elif self.left_wheel < self.right_wheel - MAX_ANGULAR_VEL:
+            self.left_wheel = self.right_wheel - MAX_ANGULAR_VEL
+        elif self.right_wheel > self.left_wheel + MAX_ANGULAR_VEL:
+            self.right_wheel = self.left_wheel + MAX_ANGULAR_VEL
+        elif self.right_wheel < self.left_wheel - MAX_ANGULAR_VEL:
+            self.right_wheel = self.left_wheel - MAX_ANGULAR_VEL
 
         pose.left_wheel_velocity = self.left_wheel
         pose.right_wheel_velocity = self.right_wheel
