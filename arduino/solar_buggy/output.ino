@@ -15,11 +15,11 @@ void outputCSV() {
   LOG_PORT.print(", ");
   LOG_PORT.print(Fix.latitude(), 4);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Heading, 4);
+  LOG_PORT.print(Heading, 6);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.location.DistanceMiles(destination), 4);
+  LOG_PORT.print(Fix.location.DistanceKm(destination), 6);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.location.BearingToDegrees(destination), 4);
+  LOG_PORT.print(Fix.location.BearingToDegrees(destination), 6);
 
   LOG_PORT.println();
 }

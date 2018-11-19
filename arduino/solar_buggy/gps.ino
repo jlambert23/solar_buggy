@@ -34,11 +34,12 @@ void getLongLat(char c) {
   else if (c == '\n') {
     buffer[i] = '\0';
     output += String(buffer);
-    Latitude = atof(buffer);    
+    Latitude = atof(buffer);
     i = 0;
     
     destination = NeoGPS::Location_t(Longitude, Latitude);
     LOG_PORT.println(output);
+    output = "";
   }
   else
     buffer[i++] = c;

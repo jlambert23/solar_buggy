@@ -13,9 +13,12 @@ const int echoPins[] = { 4, 6, 8, 10 };
 const int trigPins[] = { 5, 7, 9, 11 };
 
 // 28.5853905,-81.2001379
-// 28.5845915,-81.1997349
-float Longitude = 28.5853905;
-float Latitude = -81.2001379;
+// 28.5848326, -81.1999991
+float longLat1[] = {28.5853905, -81.2001379};
+float longLat2[] = {28.5848326, -81.1999991};
+
+float Longitude = longLat1[0];
+float Latitude = longLat1[1];
 NeoGPS::Location_t destination( Longitude, Latitude );
 
 bool input_mode = false;

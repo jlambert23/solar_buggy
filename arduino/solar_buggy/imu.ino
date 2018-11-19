@@ -11,6 +11,6 @@ void read_imu() {
     heading = IMU_SERIAL.parseFloat() + DECLINATION + HEADING_OFFSET;
     if (heading > 360 || heading < 0) return;
     rs_imu.push(heading);
-    Heading = rs_imu.sum / rs_imu.length;
+    Heading = rs_imu.sum / rs_imu.length - HEADING_OFFSET;
   }
 }
