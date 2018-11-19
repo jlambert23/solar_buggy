@@ -64,6 +64,15 @@ class UltraNode:
             elif self.right_wheel < -16:
                 self.right_wheel = -16            
 
+            if self.left_wheel > self.right_wheel + MAX_ANGULAR_VEL:
+                self.left_wheel = self.right_wheel + MAX_ANGULAR_VEL
+            elif self.left_wheel < self.right_wheel - MAX_ANGULAR_VEL:
+                self.left_wheel = self.right_wheel - MAX_ANGULAR_VEL
+            elif self.right_wheel > self.left_wheel + MAX_ANGULAR_VEL:
+                self.right_wheel = self.left_wheel + MAX_ANGULAR_VEL
+            elif self.right_wheel < self.left_wheel - MAX_ANGULAR_VEL:
+                self.right_wheel = self.left_wheel - MAX_ANGULAR_VEL
+
             pose.left_wheel_velocity = self.left_wheel
             pose.right_wheel_velocity = self.right_wheel
             

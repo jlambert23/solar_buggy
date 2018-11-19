@@ -3,7 +3,7 @@
 import rospy
 import math
 
-from std_msgs.msg import String
+from std_msgs.msg import Bool
 from geographic_msgs.msg import GeoPoint
 from solar_buggy.msg import RelationalWayPoint, Pose, GeoPose
 
@@ -20,19 +20,24 @@ class GpsNode:
     def __init__(self):
         rospy.init_node('gps', anonymous=True)
         self.cmd_pub = rospy.Publisher('gps_vel', Pose, queue_size=10)
+        self.update_wp_pub = rospy.Publisher('update_waypoint', GeoPoint, queue_size=10)
 
         # Convert tolerance to kilometers
         self.distance_tolerance = DISTANCE_TOLERANCE / 1000.0
         
         self.waypoint = RelationalWayPoint()
         self.coordinates = GeoPoint()
+        self.origin = GeoPoint()
         self.left_wheel = 0
         self.right_wheel = 0
         self.bearing_old = 0
+        self.destination_reached = False
+        self.returning  = False
 
         rospy.Subscriber('gps', GeoPose, self.update_global_pose)
         rospy.Subscriber('waypoint', RelationalWayPoint, self.update_waypoint)
         rospy.Subscriber('cmd_vel', Pose, self.update_pose)
+        rospy.Subscriber('return', Bool, self.update_returning)
 
     def update_pose(self, data):
         self.left_wheel = data.left_wheel_velocity
@@ -42,10 +47,31 @@ class GpsNode:
         self.coordinates = data.coordinates
         self.bearing = data.bearing
 
+        if self.origin.longitude == 0 and self.origin.latitude == 0:
+            self.origin = self.coordinates
+
     def update_waypoint(self, data):
         self.waypoint = data
-        self.waypoint.distance = round(data.distance, 8)
-        self.move2goal()
+        # self.waypoint.distance = round(data.distance, 8)
+        # self.move2goal()
+        self.go_to_waypoint_and_back()
+
+    def update_returning(self, is_returning):
+        self.returning = is_returning
+
+    def go_to_waypoint_and_back(self):
+        if not self.destination_reached:
+            self.move2goal()
+        
+        elif not self.returning:
+            rate = rospy.Rate(10)
+            self.update_wp_pub.publish(self.origin)
+            self.destination_reached = False
+            rospy.loginfo("Returning...")
+            rate.sleep()
+            
+        else:
+            rospy.loginfo("Circuit complete!")
 
     def move2goal(self):
         pose = Pose()
@@ -61,7 +87,7 @@ class GpsNode:
         if self.waypoint.distance >= self.distance_tolerance:
             bearing_delta = find_delta(self.bearing, self.waypoint.bearing)
 
-            # print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
+            print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
 
             # 'Normalize' bearing
             if abs(self.bearing_old - bearing_delta) > 15:
@@ -70,7 +96,7 @@ class GpsNode:
                 p_controller = abs(bearing_delta) * BEARING_COEFF
             self.bearing_old = bearing_delta
 
-            print(p_controller)
+            # print(p_controller)
 
             #clock-wise; turn right
             if bearing_delta < 0 - ANGULAR_TOLERANCE:
@@ -113,7 +139,8 @@ class GpsNode:
 
         else:
             pose.status = 0
-            rospy.loginfo("DESTINATION REACHED")
+            rospy.loginfo("Destination reached!")
+            self.destination_reached = True
         
         self.cmd_pub.publish(pose)
 
