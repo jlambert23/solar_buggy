@@ -62,9 +62,9 @@ class ReadSerial:
             return
 
     def read_serial_json(self):
-        data = json.loads(serU.readline())
-
         try:
+            data = json.loads(self.serU.readline())
+
             coordinates = GeoPoint()
             coordinates.latitude = data['gps']['latitude']
             coordinates.longitude = data['gps']['longitude']
@@ -90,8 +90,10 @@ class ReadSerial:
             )
 
         except KeyError:
+            print('exception occured')
             return
         except ValueError:
+            print('exception occured')  
             return
 
     def transmit_new_waypoint(self, latitude, longitude):
@@ -135,7 +137,6 @@ class ReadSerial:
 
 if __name__ == '__main__':
     rs = ReadSerial()
-    # rs.update_waypoint(28.5845915, -81.1997349)
     rs.read_serial()
     rs.serU.close()
     
