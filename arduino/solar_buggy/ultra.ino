@@ -3,7 +3,7 @@
 // Parameters
 #define MAX_DISTANCE 100 // in cm (For timeout; ~6500 mu)
 #define TIMEOUT_BUFFER 600 // in mu
-#define RS_ULTRA_SIZE 2
+#define RS_ULTRA_SIZE 3
 
 // Constants
 #define SPEED_OF_SOUND 34.3 // in cm/ms
@@ -41,6 +41,5 @@ void read_ultrasonic()
     if (distance == 0) distance = Distance[i];
     rs_ultra[i].push(distance);
     Distance[i] = rs_ultra[i].sum / rs_ultra[i].length;
-    LOG_PORT.println(distance);
   }
 }
