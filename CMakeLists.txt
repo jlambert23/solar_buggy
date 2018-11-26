@@ -20,7 +20,7 @@ add_message_files(
 
 add_service_files(
   FILES
-  Controller.srv
+  UpdateWaypoint.srv
 )
 
 generate_messages(

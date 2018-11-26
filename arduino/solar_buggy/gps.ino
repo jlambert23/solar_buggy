@@ -24,20 +24,20 @@ void read_gps() {
     Fix = gps.read();
 }
 
-void getLongLat(char c) {
+void getLatLong(char c) {
   if (c == ',') {
     buffer[i] = '\0';
     output += String(buffer) + ",";
-    Longitude = atof(buffer);
+    Latitude = atof(buffer);
     i = 0;
   }
   else if (c == '\n') {
     buffer[i] = '\0';
     output += String(buffer);
-    Latitude = atof(buffer);
+    Longitude = atof(buffer);
     i = 0;
     
-    destination = NeoGPS::Location_t(Longitude, Latitude);
+    destination = NeoGPS::Location_t(Latitude, Longitude);
     LOG_PORT.println(output);
     output = "";
   }

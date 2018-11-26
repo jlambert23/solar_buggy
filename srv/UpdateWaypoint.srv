@@ -1,0 +1,3 @@
+geographic_msgs/GeoPoint coordinates
+---
+bool is_updated

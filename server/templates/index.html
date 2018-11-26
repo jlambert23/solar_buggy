@@ -11,10 +11,11 @@
 Enter GPS Coords: 
 <br>
 <br>
-Longitude:<input type="text" id="longitude"></input>
 Latitude:<input type="text" id="latitude"></input>
+Longitude:<input type="text" id="longitude"></input>
 <br>
 <button type="button" id="submitcoords">Submit</button>
+<label style="color:red" id="confirm"></label>
 <br>
 <br>
 
@@ -37,9 +38,9 @@ setInterval(function(){
     });
 }, 500);
 
-$("#submitcoords").click(function(){
-    var long = $("#longitude").val();
-    var lat = $("#latitude").val();
+$("#submitcoords").click(function(){  
+  var lat = $("#latitude").val();
+  var long = $("#longitude").val();
 
     temp = {
       data: {
@@ -51,15 +52,16 @@ $("#submitcoords").click(function(){
     console.log("Long: " + temp.data.longitude);
     console.log("Lat: " + temp.data.latitude);
 
-
     $.ajax({
       url: "/coords",
       type: "post",
       data: {longitude: long, latitude: lat},
       success: function(response) {
         console.log('response');
+        $("#confirm").text("Coordinates submitted.")
       },
       error: function(xhr) {
+        $("#confirm").text("Submission failed.")
         //Do Something to handle error
       }
     });

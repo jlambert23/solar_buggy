@@ -1,7 +1,1 @@
-{
-    "speed": 5.3,
-    "acceleration": 23.124,
-    "bearing": 12.0123,
-    "longitude": 234.2423424,
-    "latitude": 12.02324
-}
+{"Waypoint": {"Distance": 0.0, "Bearing": 0.0}, "GPS": {"Latitude": 28.58566, "Bearing": 162.53335571289062, "Longitude": -81.199234}}

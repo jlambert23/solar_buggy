@@ -6,21 +6,29 @@ JsonObject& destJson = gpsJson.createNestedObject("waypoint");
 JsonObject& ultraJson = root.createNestedObject("ultrasonic");
 
 void outputCSV() {
-  // ultrasonic_0, ultrasonic_1, ultrasonic_2, ultrasonic_3, longitude, latitude, heading, distance, bearing
+  // ultrasonic_0, ultrasonic_1, ultrasonic_2, ultrasonic_3, latitude, longitude, heading, distance, bearing
   for (int i = 0; i < ULTRASONICS; i++) {
     LOG_PORT.print(Distance[i], 4);
     LOG_PORT.print(", ");
   }
-  LOG_PORT.print(Fix.longitude(), 4);
+  LOG_PORT.print(Fix.latitude(), 6);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.latitude(), 4);
+  LOG_PORT.print(Fix.longitude(), 6);
   LOG_PORT.print(", ");
   LOG_PORT.print(Heading, 6);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.location.DistanceKm(destination), 6);
-  LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.location.BearingToDegrees(destination), 6);
-
+  
+  if (Latitude == 0 && Longitude == 0) {
+    LOG_PORT.print(0);
+    LOG_PORT.print(", ");
+    LOG_PORT.print(0);
+  }
+  else {
+    LOG_PORT.print(Fix.location.DistanceKm(destination), 6);
+    LOG_PORT.print(", ");
+    LOG_PORT.print(Fix.location.BearingToDegrees(destination), 6);
+  }
+  
   LOG_PORT.println();
 }
 

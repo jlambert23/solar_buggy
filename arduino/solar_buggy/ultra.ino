@@ -41,5 +41,6 @@ void read_ultrasonic()
     if (distance == 0) distance = Distance[i];
     rs_ultra[i].push(distance);
     Distance[i] = rs_ultra[i].sum / rs_ultra[i].length;
+    LOG_PORT.println(distance);
   }
 }

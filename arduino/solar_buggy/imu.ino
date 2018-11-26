@@ -3,7 +3,7 @@
 #define DECLINATION -6.58 // +- 0.3 In degrees, son
 #define HEADING_OFFSET 187
 
-RollingSum rs_imu(5);
+RollingSum rs_imu(3);
 float heading;
 
 void read_imu() {   

@@ -14,12 +14,14 @@ const int trigPins[] = { 5, 7, 9, 11 };
 
 // 28.5853905,-81.2001379
 // 28.5848326, -81.1999991
-float longLat1[] = {28.5853905, -81.2001379};
-float longLat2[] = {28.5848326, -81.1999991};
+float latLong1[] = {28.5853905, -81.2001379};
+float latLong2[] = {28.5848326, -81.1999991};
+float latLong3[] = {28.60027778, -81.19805556}; // UCF behind HEC
+float latLong4[] = {28.71, -81.41611111}; // Longwood
 
-float Longitude = longLat1[0];
-float Latitude = longLat1[1];
-NeoGPS::Location_t destination( Longitude, Latitude );
+float Latitude = 0;
+float Longitude = 0;
+NeoGPS::Location_t destination( Latitude, Longitude );
 
 bool input_mode = false;
 
@@ -43,7 +45,7 @@ void loop() {
       handle_command();
 
     else if (input_mode)
-      getLongLat(c);
+      getLatLong(c);
   }
 
   else if (!input_mode) {

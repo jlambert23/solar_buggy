@@ -4,13 +4,14 @@ import rospy
 import math
 
 from std_msgs.msg import Bool
+from solar_buggy.srv import UpdateWaypoint
 from geographic_msgs.msg import GeoPoint
 from solar_buggy.msg import RelationalWayPoint, Pose, GeoPose
 
 DISTANCE_TOLERANCE = 30 # in meters
 ANGULAR_TOLERANCE = 15.0 # in degrees
 BEARING_COEFF = 0.07 # Coefficient for proportional rotation control
-MAX_ANGULAR_VEL = 10
+MAX_ANGULAR_VEL = 16
 
 def find_delta(x, y):
     return (x - y + 180) % 360 - 180
@@ -20,12 +21,13 @@ class GpsNode:
     def __init__(self):
         rospy.init_node('gps', anonymous=True)
         self.cmd_pub = rospy.Publisher('gps_vel', Pose, queue_size=10)
-        self.update_wp_pub = rospy.Publisher('update_waypoint', GeoPoint, queue_size=10)
+        self.update_waypoint = rospy.ServiceProxy('update_waypoint', UpdateWaypoint)
 
         # Convert tolerance to kilometers
         self.distance_tolerance = DISTANCE_TOLERANCE / 1000.0
         
         self.waypoint = RelationalWayPoint()
+        self.old_waypoint = RelationalWayPoint()
         self.coordinates = GeoPoint()
         self.origin = GeoPoint()
         self.left_wheel = 0
@@ -35,9 +37,8 @@ class GpsNode:
         self.returning  = False
 
         rospy.Subscriber('gps', GeoPose, self.update_global_pose)
-        rospy.Subscriber('waypoint', RelationalWayPoint, self.update_waypoint)
+        rospy.Subscriber('waypoint', RelationalWayPoint, self.get_waypoint)
         rospy.Subscriber('cmd_vel', Pose, self.update_pose)
-        rospy.Subscriber('return', Bool, self.update_returning)
 
     def update_pose(self, data):
         self.left_wheel = data.left_wheel_velocity
@@ -47,47 +48,58 @@ class GpsNode:
         self.coordinates = data.coordinates
         self.bearing = data.bearing
 
-        if self.origin.longitude == 0 and self.origin.latitude == 0:
-            self.origin = self.coordinates
-
-    def update_waypoint(self, data):
+    def get_waypoint(self, data):
         self.waypoint = data
         # self.waypoint.distance = round(data.distance, 8)
         # self.move2goal()
         self.go_to_waypoint_and_back()
-
-    def update_returning(self, is_returning):
-        self.returning = is_returning
 
     def go_to_waypoint_and_back(self):
         if not self.destination_reached:
             self.move2goal()
         
         elif not self.returning:
-            rate = rospy.Rate(10)
-            self.update_wp_pub.publish(self.origin)
-            self.destination_reached = False
-            rospy.loginfo("Returning...")
+            rate = rospy.Rate(100)
+            is_updated = False
+
+            if not is_updated:
+                rospy.loginfo("Returning...")
+                rospy.wait_for_service('update_waypoint')
+                is_updated = self.update_waypoint(self.origin)
+                rate.sleep()
+                
+                if self.old_waypoint.bearing == 0 and self.old_waypoint.distance == 0:
+                    self.old_waypoint = self.waypoint
+
+            if self.waypoint != self.old_waypoint:
+                self.destination_reached = False
+                self.returning = True
+
             rate.sleep()
             
         else:
-            rospy.loginfo("Circuit complete!")
+            self.destination_reached = False
 
     def move2goal(self):
         pose = Pose()
         pose.source = 'GPS'
 
-        rate = rospy.Rate(1)
-
-        if self.coordinates.latitude == 0 and self.coordinates.longitude == 0:
-            rospy.loginfo('Waiting for fix...')
-            rate.sleep()
+        if self.waypoint.distance == 0 and self.waypoint.bearing == 0:
+            rospy.loginfo('Go to http://192.168.1.100:5000 to input a waypoint.')
             return
+
+        if self.coordinates.latitude == 0.0 or self.coordinates.longitude == 0.0:
+            rospy.loginfo('Waiting for fix...')
+            return
+
+        if self.origin.longitude == 0 and self.origin.latitude == 0:
+            self.origin = self.coordinates
+            print('Stored origin at: ' + str(self.origin))
 
         if self.waypoint.distance >= self.distance_tolerance:
             bearing_delta = find_delta(self.bearing, self.waypoint.bearing)
 
-            print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
+            # print("distance: " + str(self.waypoint.distance) + "\nbearing: " + str(bearing_delta))
 
             # 'Normalize' bearing
             if abs(self.bearing_old - bearing_delta) > 15:
