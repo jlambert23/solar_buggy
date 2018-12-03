@@ -11,9 +11,9 @@ void outputCSV() {
     LOG_PORT.print(Distance[i], 4);
     LOG_PORT.print(", ");
   }
-  LOG_PORT.print(Fix.latitude(), 6);
+  LOG_PORT.print(Fix.latitude(), 8);
   LOG_PORT.print(", ");
-  LOG_PORT.print(Fix.longitude(), 6);
+  LOG_PORT.print(Fix.longitude(), 8);
   LOG_PORT.print(", ");
   LOG_PORT.print(Heading, 6);
   LOG_PORT.print(", ");
