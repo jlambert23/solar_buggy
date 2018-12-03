@@ -5,10 +5,11 @@ from std_msgs.msg import String
 from solar_buggy.msg import Ultrasonic, Pose
 
 HIGH_THRESHOLD = 35.0
-MID_THRESHOLD = 26.25
-LOW_THRESHOLD = 17.5
+MID_THRESHOLD = 30.0
+LOW_THRESHOLD = 20.0
 
-MAX_ANGULAR_VEL = 15.0
+
+MAX_ANGULAR_VEL = 24.0
 
 cmd_pub = rospy.Publisher('ultra_vel', Pose, queue_size=10)
 
@@ -39,6 +40,12 @@ class UltraNode:
         pose.status = 1
         sensor_info = 0b0
 
+        flag = ''
+        if ultra.left < MID_THRESHOLD:
+            flag = 'left'
+        elif ultra.right < MID_THRESHOLD:
+            flag = 'right'
+
         if ultra.front < LOW_THRESHOLD or ultra.left < LOW_THRESHOLD or ultra.right < LOW_THRESHOLD:
             self.inconsistencies = 0
 
@@ -47,12 +54,18 @@ class UltraNode:
                 self.right_wheel = 0
                 self.warning = True
             
-            if ultra.right < LOW_THRESHOLD:            
-                self.left_wheel -= 1
-                self.right_wheel += 1
-            else:
+            if ultra.left < LOW_THRESHOLD and not ultra.right < LOW_THRESHOLD:
                 self.left_wheel += 1
                 self.right_wheel -= 1
+            elif ultra.right < LOW_THRESHOLD and not ultra.left < LOW_THRESHOLD:
+                self.left_wheel -= 1
+                self.right_wheel += 1
+            elif flag == 'left':
+                self.left_wheel += 1
+                self.right_wheel -= 1
+            else:
+                self.left_wheel -= 1
+                self.right_wheel += 1
             
             if self.left_wheel > 16:
                 self.left_wheel = 16
@@ -94,8 +107,12 @@ class UltraNode:
                 self.left_wheel -= 3
                 self.right_wheel += 3
             elif sensor_info == 1: # front
-                self.left_wheel -= 3
-                self.right_wheel += 3
+                if flag == 'left':
+                    self.left_wheel += 3
+                    self.right_wheel -= 3
+                else:
+                    self.left_wheel -= 3
+                    self.right_wheel += 3
             elif sensor_info == 5:
                 self.left_wheel -= 5
                 self.right_wheel += 5
@@ -118,8 +135,12 @@ class UltraNode:
                 self.left_wheel -= 1
                 self.right_wheel += 1
             elif sensor_info == 1: # front
-                self.left_wheel -= 1
-                self.right_wheel += 1
+                if flag == 'left':
+                    self.left_wheel += 1
+                    self.right_wheel -= 1
+                else:
+                    self.left_wheel -= 1
+                    self.right_wheel += 1
             elif sensor_info == 5:
                 self.left_wheel -= 3
                 self.right_wheel += 3
