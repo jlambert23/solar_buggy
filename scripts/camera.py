@@ -6,25 +6,26 @@ import cv2
 
 MAX_WHEEL_SPEED = 32
 MIN_WHEEL_SPEED = -32
-MAX_ANGULAR_VEL = 15.0
+MAX_ANGULAR_VEL = 10.0
 
 # (min, max)
 HSV_PINK = ([121,39,98], [240,255,255])
 HSV_ORANGE = ([12,80,180], [30,255,255])
-LAB_ORANGE = ([130,140,150], [210,200,215])
-
+LAB_ORANGE2 = ([130,140,150], [210,200,215])
+LAB_ORANGE = ([113,135,135] ,[250,210,215])
 
 height = 180
 width = 240
 
 y_third = height/3
-y_twothird = y_third * 2
-x_third = width/3
-x_twothird = x_third * 2
+y_two_third = y_third * 2
+x_quarter = width/4
+x_half = x_quarter * 2
+x_three_quarter = x_quarter * 3
 
 minArea = 90
-mid_area_threshold = minArea * 0.2
-bot_area_threshold = minArea * 0.6
+mid_area_threshold = x_quarter * y_third * 0.1
+bot_area_threshold = x_quarter * y_third * 0.17
 
 class CameraNode:
 
@@ -69,20 +70,23 @@ class CameraNode:
 
         # self.display(('image_mask', image_mask), ('frame', frame))
 
-        top_left  = image_mask[0:y_third, 0:x_third]
-        top_mid   = image_mask[0:y_third, x_third+1:x_twothird]
-        top_right = image_mask[0:y_third, x_twothird+1:width]
-        mid_left  = image_mask[y_third+1:y_twothird, 0:x_third]
-        mid_mid   = image_mask[y_third+1:y_twothird, x_third+1:x_twothird]
-        mid_right = image_mask[y_third+1:y_twothird, x_twothird+1:width]
-        bot_left  = image_mask[y_twothird+1:height, 0:x_third]
-        bot_mid   = image_mask[y_twothird+1:height, x_third+1:x_twothird]
-        bot_right = image_mask[y_twothird+1:height, x_twothird+1:width]
+        top_left     = image_mask[0:y_third, 0:x_quarter]
+        top_midleft  = image_mask[0:y_third, x_quarter+1:x_half]
+        top_midright = image_mask[0:y_third, x_half+1:x_three_quarter]
+        top_right    = image_mask[0:y_third, x_three_quarter+1:width]
+        mid_left     = image_mask[y_third+1:y_two_third, 0:x_quarter]
+        mid_midleft  = image_mask[y_third+1:y_two_third, x_quarter+1:x_half]
+        mid_midright = image_mask[y_third+1:y_two_third, x_half+1:x_three_quarter]
+        mid_right    = image_mask[y_third+1:y_two_third, x_three_quarter+1:width]
+        bot_left     = image_mask[y_two_third+1:height, 0:x_quarter]
+        bot_midleft  = image_mask[y_two_third+1:height, x_quarter+1:x_half]
+        bot_midright = image_mask[y_two_third+1:height, x_half+1:x_three_quarter]
+        bot_right    = image_mask[y_two_third+1:height, x_three_quarter+1:width]
 
         areas = [
-            [np.mean(top_left), np.mean(top_mid), np.mean(top_right)],
-            [np.mean(mid_left), np.mean(mid_mid), np.mean(mid_right)],
-            [np.mean(bot_left), np.mean(bot_mid), np.mean(bot_right)]
+            [np.sum(top_left) / 255, np.sum(top_midleft) / 255, np.sum(top_midright) / 255 , np.sum(top_right) / 255],
+            [np.sum(mid_left) / 255, np.sum(mid_midleft) / 255, np.sum(mid_midright) / 255 , np.sum(mid_right) / 255],
+            [np.sum(bot_left) / 255, np.sum(bot_midleft) / 255, np.sum(bot_midright) / 255 , np.sum(bot_right) / 255]
         ]
 
         flags = []
@@ -91,14 +95,17 @@ class CameraNode:
 
         if moments['m00'] >= minArea:
             pose.status = 1
-            print(flags)
+            
+            if any(flags[0]) or any(flags[1]):
+                print(flags)
 
-            if flags[1][0] or flags[0][0]:
+            if flags[1][0] or flags[1][1] or flags[0][0] or flags[0][1]:
                 self.last_flag = 'left'
-            if flags[1][2] or flags[0][2]:
+            if flags[1][2] or flags[1][3] or flags[0][2] or flags[0][3]:
                 self.last_flag = 'right'
 
             if any(flags[1]):
+                value = 0
                 self.inconsistencies = 0
 
                 if not self.warning:
@@ -108,7 +115,6 @@ class CameraNode:
                 
                 # spin
                 if all(flags[1]):
-                    print(self.last_flag)
                     if self.last_flag == 'left':
                         self.left_wheel = 10
                         self.right_wheel = -10
@@ -118,17 +124,34 @@ class CameraNode:
 
                     # rospy.sleep(0.6)
 
+                # middle flags
+                elif flags[1][1] and flags[1][2]:
+                    # turn right
+                    if flags[1][0] and not flags[1][3]:
+                        self.left_wheel += 1
+                        self.right_wheel -= 1
+                    # turn left
+                    elif flags[1][3] and not flags[1][0]:
+                        self.left_wheel -= 1
+                        self.right_wheel += 1
+                    # spin
+                    else:
+                        if self.last_flag == 'left':
+                            self.left_wheel = 10
+                            self.right_wheel = -10
+                        else:
+                            self.left_wheel = -10
+                            self.right_wheel = 10
                 # turn left
-                elif flags[1][0]:
+                elif flags[1][0] or flags[1][1]:
                     self.left_wheel += 1
                     self.right_wheel -= 1
                 # turn right
-                elif flags[1][2]:
+                elif flags[1][2] or flags[1][3]:
                     self.left_wheel -= 1
                     self.right_wheel += 1
                 # spin
                 else:
-                    print(self.last_flag)
                     if self.last_flag == 'left':
                         self.left_wheel = 10
                         self.right_wheel = -10
@@ -221,6 +244,11 @@ class CameraNode:
 
     def display(self, *args):
         try:
+
+            if self.cam.isOpened():
+                self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT,height * 3) 
+                self.cam.set(cv2.CAP_PROP_FRAME_WIDTH,width * 3) 
+
             for im in args:
                 cv2.imshow(im[0], im[1])
 
