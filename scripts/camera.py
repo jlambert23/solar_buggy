@@ -6,34 +6,42 @@ import rospy
 import cv2
 
 # Motor parameters
-max_wheel_speed = 32
-min_wheel_speed = -32
-max_angular_vel = 10.0
+max_wheel_speed = 16
+min_wheel_speed = -16
+p_gain = 0.01
+d_gain = 0.75
 
 # Camera parameters
 display_image = False
-max_camera_width = 300
-error_threshold = max_camera_width * 0.05
-p_gain = 0.04
+width = 300
+height = 225
+error_threshold = 0.75
 
-# HOG Descriptor Parameters
+# HOG descriptor parameters
 winStride = (4, 4)
 padding = (8, 8)
 scale = 1.05
+
+# Color detector parameters
+lab_orange = ([95,140,150], [210,200,215])
+lab_orange2 = ([113,135,135] ,[250,210,215])
+
 
 class CameraNode:
 
     def __init__(self):
         rospy.init_node('camera', anonymous=True)
         self.pub = rospy.Publisher('cam_vel', Pose, queue_size=10)
-        self.cam = cv2.VideoCapture(0)
+        self.cam = cv2.VideoCapture(-1)
         self.left_wheel = 0.0
         self.right_wheel = 0.0
+        self.p_error = 0
 
         if self.cam.isOpened():
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH,max_camera_width) 
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH,width)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT,height) 
         else:
-            rospy.loginfo("Camera unable to start.")
+            rospy.logerr("Camera unable to start.")
             raise SystemError
             
     # Subscribe to cmd_vel to update node's wheel velocity
@@ -45,6 +53,7 @@ class CameraNode:
     def object_detection(self, use_non_max_suppression=False):
 
         # Initialize HOG descripter to detect people
+        print('reading camera')
         ret, frame = self.cam.read()
         hog = cv2.HOGDescriptor()
         hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -66,7 +75,7 @@ class CameraNode:
 
         # Pair rectangles with weights and sort in descending weight order
         results = []
-	    if (rects.any()):
+        if (any(results)):
             results = [(rects[i],weights[i][0]) for i in range(weights.size)]
             results.sort(key=lambda var: var[1], reverse=True)
 
@@ -74,20 +83,25 @@ class CameraNode:
 
     # Handle camera data and publish motor commands
     def handler(self):
+        self._handler_color_detector()
+
+    def _handler_HOG_detector(self):
         pose = Pose()
         pose.source = 'camera'
         pose.status = 0
+
         results = self.object_detection()
+        results = []
 
         # If there are no results or the highest weight is 0, 
         # then publish inactive node
-        if not results.any() or results[0][1] <= 0:
+        if not any(results) or results[0][1] <= 0:
             self.pub.publish(pose)
             return
 
         # Select bounding box with the largest weight
         rect, weight = results[0]
-        
+
         # Calculate centers of screen and boxes
         (xA, yA, xB, yB) = rect
         (mid_x, mid_y) = (xA + xB / 2, yA + yB / 2)
@@ -106,6 +120,62 @@ class CameraNode:
         pose.right_wheel_velocity = self.right_wheel
         self.pub.publish(pose)
 
+    def _handler_color_detector(self):
+        pose = Pose()
+        pose.source = 'camera'
+        pose.status = 0
+
+        # Setup camera configurations
+        ret, frame = self.cam.read()
+        lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+        image_mask = cv2.inRange(lab, np.array(lab_orange[0]), np.array(lab_orange[1]))
+
+        # Optionally display image (for debugging)
+        if display_image:
+            self.display(('frame', frame), ('image_mask', image_mask))
+
+        # Segment the image mask x-axis into n slices
+        n = 10
+        x_split = split_integer(width, n)
+        areas = [image_mask[0:height, 0:x_split[0]]]
+        for i in range(n-1):
+            area = image_mask[0:height, x_split[i] + 1:x_split[i+1]]
+            areas.append(area)
+        
+        # Find the average of each segment of the image mask and apply a threshold
+        # Then apply a weight from a normal distribution to flagged segments
+        area_threshold = width / n * height * .017
+        flags = [(np.sum(a)) / 255 > area_threshold for a in areas]
+        weights = np.linspace(-2,2,n)
+        weighted_flags = [a*b for a,b in zip(flags,weights)]
+        p_error = sum(weighted_flags)
+        d_error = p_error - self.p_error
+
+        cmd = p_gain * p_error + d_gain * d_error
+        print(p_error)
+        
+        if abs(p_error) > 0.5:
+            self.left_wheel += p_error + d_gain * d_error
+            self.right_wheel -= p_error + d_gain * d_error
+            pose.status = 1
+        else:
+            pose.status = 0
+
+        # Balance wheel speeds
+        if self.left_wheel > max_wheel_speed:
+            self.left_wheel = max_wheel_speed
+        elif self.left_wheel < min_wheel_speed:
+            self.left_wheel = min_wheel_speed
+        if self.right_wheel > max_wheel_speed:
+            self.right_wheel = max_wheel_speed
+        elif self.right_wheel < min_wheel_speed:
+            self.right_wheel = min_wheel_speed            
+            
+        # Publish command
+        pose.left_wheel_velocity = self.left_wheel
+        pose.right_wheel_velocity = self.right_wheel
+        self.pub.publish(pose)
+
     # Display images in args. Expects the first argument to be the name
     # of the image and the second to be the image itself.
     def display(self, *args):
@@ -120,15 +190,21 @@ class CameraNode:
 
         except(KeyboardInterrupt):
             cv2.destroyAllWindow()
-            scam.release()
+            self.cam.release()
+
+def split_integer(dividend, divisor):
+    xs = []
+    for i in range(divisor):
+        xs.append(dividend / divisor * (i+1))
+    return xs
 
 if __name__ == '__main__':
     cam = CameraNode()
     rospy.Subscriber('cmd_vel', Pose, cam.update_pose)
-    rate = rospy.Rate(30) # 30hz
+    rate = rospy.Rate(30)
 
     while not rospy.is_shutdown():
         cam.handler()
         rate.sleep()
-
+        
     cam.cam.release()

@@ -4,7 +4,7 @@ import rospy
 from solar_buggy.msg import Pose
 from std_msgs.msg import String
 
-USE_GPS = True
+USE_GPS = False
 
 class PriorityStack:
 
@@ -72,8 +72,8 @@ class PriorityStack:
                     self._publish_command(pose)
 
                 elif not USE_GPS:
-                    pose.left_wheel_velocity = 24
-                    pose.right_wheel_velocity = 24
+                    pose.left_wheel_velocity = 0
+                    pose.right_wheel_velocity = 0
                     self._publish_command(pose)
 
                 return
