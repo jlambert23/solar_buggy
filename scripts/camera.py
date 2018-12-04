@@ -41,7 +41,7 @@ class CameraNode:
         self.left_wheel = data.left_wheel_velocity
         self.right_wheel = data.right_wheel_velocity
 
-    # Detect objects using histogram of oriented gradients (HOG) feature descriptor
+    # Return list of paired rectangles and weights of detected objects for the current frame
     def object_detection(self, use_non_max_suppression=False):
 
         # Initialize HOG descripter to detect people
@@ -79,13 +79,16 @@ class CameraNode:
         pose.status = 0
         results = self.object_detection()
 
-        # Publish inactive node
-        if not results.any() or weight <= 0:
+        # If there are no results or the highest weight is 0, 
+        # then publish inactive node
+        if not results.any() or results[0][1] <= 0:
             self.pub.publish(pose)
             return
 
-        # Calculate centers of screen and boxes
+        # Select bounding box with the largest weight
         rect, weight = results[0]
+        
+        # Calculate centers of screen and boxes
         (xA, yA, xB, yB) = rect
         (mid_x, mid_y) = (xA + xB / 2, yA + yB / 2)
         half_cam_x = cam.get(3) / 2        
